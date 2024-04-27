@@ -1,30 +1,16 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
 import * as Tone from 'tone'
 import { reactive, ref, type Ref } from 'vue'
-
-type VariableName = string;
-
-type VariablesState = { [variable: VariableName]: number }
-
-type VariablesToPlay = Array<VariableName>;
-
-type History = {
-  notes: Array<string>,
-  states: Array<VariablesState>,
-  cycleLength: number | undefined
-};
+import type {
+  History, VariableName, VariablesState,
+  VariablesToPlay, StepDefinition
+} from './model.ts'
 
 var history = reactive<History>({
   notes: [],
   states: [],
   cycleLength: undefined,
 });
-
-type StepDefinition = {
-  [variable: VariableName]: (state: VariablesState) => number
-}
 
 const fibonacciStartState: VariablesState = {
   'f0': 1,
@@ -46,40 +32,21 @@ const notes = [
     "G#2", "A2", "A#2", "B2",
     "C3"]
 
+// Meant to be used as singleton.
 class UserConfig {
-  public static getInstance() {
-    if (this.instance_ == undefined) {
-      this.instance_ = new UserConfig();
-    }
-    return this.instance_;
-  }
+  public variables: Array<VariableName> = reactive(fibonacciVariables);
 
-  public addVariable(name: string): boolean {
-    if (this.variables_.find(e => {e == name}) != undefined) {
-      return false;
-    }
-    this.variables_.push(name);
-    return true;
-  }
-
-  public variables(): Array<string> {
-    return this.variables_;
-  }
-
-  public delete(name: VariableName): boolean {
-    const idx = this.variables_.indexOf(name);
+  public deleteVariable(name: VariableName): boolean {
+    const idx = this.variables.indexOf(name);
     if (idx == -1) {
       return false;
     }
-    this.variables_.splice(idx, 1);
+    this.variables.splice(idx, 1);
     return true;
   }
-
-  private UserConfig() {}
-
-  private static instance_: UserConfig | undefined = undefined;
-  private variables_: Array<VariableName> = fibonacciVariables;
 }
+
+const userConfig = new UserConfig();
 
 function nextStep(state: VariablesState, stepDefinition: StepDefinition): VariablesState {
   const newState: VariablesState = {};
@@ -133,15 +100,27 @@ function playFibonacci() {
     <div>{{ history.notes }}</div>
     <div>{{ history.cycleLength }}</div>
   </p>
+
+  <!-- Config -->
   <p>
-    User Config:
+    <h1>User Config:</h1>
+    <h2>Variables</h2>
     <ul>
-      <li v-for="variable in UserConfig.getInstance().variables()">
+      <li v-for="variable in userConfig.variables">
         {{ variable }}
-        <button @click="UserConfig.getInstance().delete(variable)">Delete</button>
+        <button @click="userConfig.deleteVariable(variable)">Delete</button>
       </li>  
     </ul>
+    <h2>Step definition</h2>
+    <ul>
+      <li v-for="variable in userConfig.variables">
+        {{ variable }}:
+        <input type="text" />
+      </li>
+    </ul>
   </p>
+
+  <!-- Piano -->
   <p>
     <div v-for="note in notes">
       <div v-if="!note.includes('#')" class="white-key" id="{{ note }}" :ref="(el) => { noteRefs[note].value = el}">
