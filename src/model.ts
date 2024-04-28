@@ -10,14 +10,17 @@ type History = {
   cycleLength: number | undefined
 };
 
+type VarTransform = (state: VariablesState) => number;
+
 type StepDefinition = {
-    [variable: VariableName]: (state: VariablesState) => number
-}
+    [variable: VariableName]: VarTransform
+};
 
 export type {
     History,
     VariableName,
     VariablesState,
     VariablesToPlay,
-    StepDefinition
+    StepDefinition,
+    VarTransform
 };

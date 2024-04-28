@@ -1,6 +1,6 @@
 import type {
     History, VariableName, VariablesState,
-    VariablesToPlay, StepDefinition
+    VariablesToPlay, StepDefinition, VarTransform
   } from './model.ts'
 
 /*
@@ -15,6 +15,101 @@ Step definition grammar:
   <expression> "+" <expression> | <expression> "*" <expression>
 */
 
-function 
+function isLetter(str: string): boolean {
+  return str.length == 1 && str.toLowerCase() != str.toUpperCase();
+}
 
-export {};
+function isDigit(str: string): boolean {
+  return str.match('\\d') != null;
+}
+
+function isLetterOrDigit(str: string): boolean {
+  return isLetter(str) || isDigit(str);
+}
+
+function isVariableNameTail(str: string): boolean {
+  for (let char of str) {
+    console.log(char);
+    if (!isLetterOrDigit(char)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function isVariableName(str: string): boolean {
+  return str.length > 0 && isLetter(str[0]) && isVariableNameTail(str.slice(1))
+}
+
+function isNumber(str: string): boolean {
+  return !Number.isNaN((+str));
+}
+
+function indexOfNotInParentheses(
+  expr: string, matchChar: string): number {
+  var parDepth = 0;
+  var idx = 0;
+  for (let char of expr) {
+    if (char == '(') {
+      parDepth++;
+    }
+    if (char == ')') {
+      parDepth--;
+    }
+    if (char == matchChar && parDepth == 0) {
+      return idx;
+    }
+    idx++;
+  }
+  return -1;
+}
+
+function expressionToVarTransform(
+  expr: string,
+  variableNames: Array<VariableName>,
+): VarTransform {
+  console.log(expr);
+  expr = expr.trim();
+  if (isVariableName(expr)) {
+    if (!variableNames.includes(expr)) {
+      throw Error(`Variable ${expr} not declared.`)
+    }
+    return (state: VariablesState) => state[expr];
+  }
+  if (isNumber(expr)) {
+    return (_: VariablesState) => +expr;
+  }
+  if (expr[0] == '(' && expr[expr.length - 1] == ')') {
+    return expressionToVarTransform(
+      expr.slice(1, -1),
+      variableNames
+    );
+  }
+  const indexOfAdd = indexOfNotInParentheses(expr, '+');
+  if (indexOfAdd != -1) {
+    const leftTransform = expressionToVarTransform(
+      expr.slice(0, indexOfAdd),
+      variableNames
+    )
+    const rightTransform = expressionToVarTransform(
+      expr.slice(indexOfAdd + 1),
+      variableNames
+    )
+    return (state: VariablesState) => leftTransform(state) + rightTransform(state);
+  }
+  const indexOfMult = indexOfNotInParentheses(expr, '*');
+  if (indexOfMult != -1) {
+    const leftTransform = expressionToVarTransform(
+      expr.slice(0, indexOfMult),
+      variableNames
+    )
+    const rightTransform = expressionToVarTransform(
+      expr.slice(indexOfMult + 1),
+      variableNames
+    )
+    return (state: VariablesState) => leftTransform(state) * rightTransform(state);
+  }
+  throw Error(`Could not parse expression ${expr}.`)
+}
+
+export {expressionToVarTransform};

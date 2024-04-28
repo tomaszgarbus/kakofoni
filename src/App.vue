@@ -5,6 +5,7 @@ import type {
   History, VariableName, VariablesState,
   VariablesToPlay, StepDefinition
 } from './model.ts'
+import { expressionToVarTransform  } from './step_definition_parser.js';
 
 var history = reactive<History>({
   notes: [],
@@ -32,9 +33,18 @@ const notes = [
     "G#2", "A2", "A#2", "B2",
     "C3"]
 
+var newVar: string = "";
+
 // Meant to be used as singleton.
 class UserConfig {
   public variables: Array<VariableName> = reactive(fibonacciVariables);
+  public startState: VariablesState = {};
+  public unparsedVarTransforms: {
+    [variable: VariableName]: string
+  } = {};
+  public playVariable: {
+    [variable: VariableName]: boolean
+  } = {};
 
   public deleteVariable(name: VariableName): boolean {
     const idx = this.variables.indexOf(name);
@@ -42,6 +52,14 @@ class UserConfig {
       return false;
     }
     this.variables.splice(idx, 1);
+    return true;
+  }
+
+  public addVariable(name: VariableName): boolean {
+    if (this.variables.includes(name)) {
+      return false;
+    }
+    this.variables.push(name);
     return true;
   }
 }
@@ -62,11 +80,21 @@ for (var note of notes) {
   noteRefs[note] = ref(null);
 }
 
-function play(startState: VariablesState, stepDefinition: StepDefinition, variablesToPlay: VariablesToPlay) {
+var currentlyPlaying: Tone.Loop | null;
+
+function stop() {
+  currentlyPlaying?.stop();
+  currentlyPlaying = null;
+}
+
+function play(
+  startState: VariablesState,
+  stepDefinition: StepDefinition,
+   variablesToPlay: VariablesToPlay) {
   const synth = new Tone.PolySynth().toDestination();
   var state = startState;
 
-  const loop = new Tone.Loop(time => {
+  currentlyPlaying = new Tone.Loop(time => {
     for (var note of notes) {
       noteRefs[note].value.classList.remove('active');
     }
@@ -83,7 +111,28 @@ function play(startState: VariablesState, stepDefinition: StepDefinition, variab
     state = nextStep(state, stepDefinition);
   }, "4n").start(0);
   // Start
+  Tone.Transport.bpm.rampTo(160);
   Tone.Transport.start()
+}
+
+function validateAndPlay() {
+  const variablesToPlay: VariablesToPlay = [];
+  const stepDefinition: StepDefinition = {};
+  for (let variable of userConfig.variables) {
+    stepDefinition[variable] =
+      expressionToVarTransform(
+        userConfig.unparsedVarTransforms[variable],
+        userConfig.variables);
+  }
+  for (let variable of userConfig.variables) {
+    if (userConfig.playVariable[variable]) {
+      variablesToPlay.push(variable);
+    }
+  }
+  play(userConfig.startState,
+    stepDefinition,
+    variablesToPlay,
+  )
 }
 
 function playFibonacci() {
@@ -93,13 +142,10 @@ function playFibonacci() {
 
 <template>
   <div>
-    <button @click="playFibonacci">play sound</button>
+    <button @click="validateAndPlay">play sound</button>
+    <button @click="stop">stop playing</button>
   </div>
   <br>
-  <p>
-    <div>{{ history.notes }}</div>
-    <div>{{ history.cycleLength }}</div>
-  </p>
 
   <!-- Config -->
   <p>
@@ -108,14 +154,24 @@ function playFibonacci() {
     <ul>
       <li v-for="variable in userConfig.variables">
         {{ variable }}
+        <input type="text" v-model="userConfig.startState[variable]">
         <button @click="userConfig.deleteVariable(variable)">Delete</button>
-      </li>  
+      </li>
+      Add variable: <input type="text" v-model="newVar"> <button @click="userConfig.addVariable(newVar)">Add</button>
     </ul>
     <h2>Step definition</h2>
     <ul>
       <li v-for="variable in userConfig.variables">
         {{ variable }}:
-        <input type="text" />
+        <input
+          type="text"
+          v-model="userConfig.unparsedVarTransforms[variable]"/>
+      </li>
+    </ul>
+    <h2>Variables to play</h2>
+    <ul>
+      <li v-for="variable in userConfig.variables">
+        {{ variable }}: <input type="checkbox" v-model="userConfig.playVariable[variable]" />
       </li>
     </ul>
   </p>
