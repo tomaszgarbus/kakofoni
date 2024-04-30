@@ -5,9 +5,7 @@ type VariablesState = { [variable: VariableName]: number }
 type VariablesToPlay = Array<VariableName>;
 
 type History = {
-  notes: Array<string>,
   states: Array<VariablesState>,
-  cycleLength: number | undefined
 };
 
 type VarTransform = (state: VariablesState) => number;

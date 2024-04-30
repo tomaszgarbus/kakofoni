@@ -1,27 +1,16 @@
 <script setup lang="ts">
 import * as Tone from 'tone'
-import { reactive, ref, type Ref } from 'vue'
+import * as d3 from 'd3'
+import { onMounted, reactive, ref, type Ref } from 'vue'
 import type {
   History, VariableName, VariablesState,
   VariablesToPlay, StepDefinition
-} from './model.ts'
+} from './types.js'
 import { expressionToVarTransform  } from './step_definition_parser.js';
 
 var history = reactive<History>({
-  notes: [],
   states: [],
-  cycleLength: undefined,
 });
-
-const fibonacciStartState: VariablesState = {
-  'f0': 1,
-  'f1': 1,
-}
-
-const fibonacciStepDefinition: StepDefinition = {
-  'f0': (state) => state['f1'],
-  'f1': (state) => state['f0'] + state['f1']
-}
 
 const fibonacciVariablesToPlay: VariablesToPlay = ['f0', 'f1']
 
@@ -98,15 +87,14 @@ function play(
     for (var note of notes) {
       noteRefs[note].value.classList.remove('active');
     }
-    console.log(state);
 
     for (let variable of variablesToPlay) {
-      console.log(variable);
       const value = state[variable];
-      console.log(value);
       synth.triggerAttackRelease(notes[value], "8n", time);
       noteRefs[notes[value]].value.classList.add('active');
     }
+    history.states.push(state);
+    updateChart();
 
     state = nextStep(state, stepDefinition);
   }, "4n").start(0);
@@ -135,9 +123,68 @@ function validateAndPlay() {
   )
 }
 
-function playFibonacci() {
-  play(fibonacciStartState, fibonacciStepDefinition, fibonacciVariablesToPlay)
+function updateChart() {
+  // Clear the graph first.
+  d3.selectAll("svg > *").remove();
+
+  const margin = {top: 10, right: 30, bottom: 30, left: 60};
+  const width = 800 - margin.left - margin.right;
+  const height = 500 - margin.top - margin.bottom;
+  const svg = d3.select("svg")
+  svg
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", `translate(${margin.left},${margin.top}`);
+
+  const x = d3
+    .scaleLinear()
+    .domain([0, history.states.length])
+    .range([0, width]);
+  const y = d3
+      .scaleLinear()
+      .domain(
+        [0, notes.length]
+      )
+      .range([0, height]);
+  const colors = ['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf','#999999'];
+  
+  const lines: { [varName: VariableName]: d3.Line<VariablesState> } = {};
+  for (let variable of userConfig.variables) {
+    const line = d3
+      .line<VariablesState>()
+      .x(function (_, index: number, __) {
+        return x(index);
+      })
+      .y(function (d: VariablesState) {
+      return y(d[variable]);
+    });
+    lines[variable] = line;
+  }
+  svg.append("g")
+    .attr("transform", `translate(0, ${height})`)
+    .call(d3.axisBottom(x).ticks(5));
+  svg.append("g")
+    .call(d3.axisLeft(y));
+
+  var groups = d3.group(userConfig.variables);
+
+  svg.selectAll(".line")
+    .data(groups)
+    .join("path")
+    .attr("fill", "none")
+    .attr("stroke", function (_, idx: number) {
+      return colors[idx];
+    })
+    .attr("stroke-width", 1.5)
+    .attr('d', function (g: VariableName) {
+      return lines[g](history.states);
+    });
 }
+
+onMounted(() => {
+  updateChart();
+})
 </script>
 
 <template>
@@ -150,7 +197,17 @@ function playFibonacci() {
   <!-- Config -->
   <p>
     <h1>User Config:</h1>
-    <h2>Variables</h2>
+    <div class="block">
+      <h2>Variables and initial values</h2>
+      <p class="section-hint">
+        First, list all variables you want to use and set their initial (step 0) values. You can add up to 10 variables.
+      </p>
+      <span v-for="variable in userConfig.variables">
+        <div class="variable-entry">
+          <img src="@/assets/icons/close.svg" />
+        </div>
+      </span>
+    </div>
     <ul>
       <li v-for="variable in userConfig.variables">
         {{ variable }}
@@ -187,6 +244,9 @@ function playFibonacci() {
       </div>
     </div>
   </p>
+
+  <!--Visualizer-->
+  <svg></svg>
 </template>
 
 <style scoped>

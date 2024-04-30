@@ -1,7 +1,7 @@
 import type {
     History, VariableName, VariablesState,
     VariablesToPlay, StepDefinition, VarTransform
-  } from './model.ts'
+  } from './types.js'
 
 /*
 Step definition grammar:
