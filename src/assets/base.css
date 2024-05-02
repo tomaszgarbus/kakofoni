@@ -35,6 +35,15 @@
   --block-bgcolor: #F4F4F4;
 }
 
+h1 {
+  background: var(--secondary-gradient);
+  background-clip: text;
+  color: transparent;
+  font-family: 'Solway';
+  font-size: 36pt;
+  margin: 0pt;
+}
+
 h2 {
   background: var(--secondary-gradient);
   background-clip: text;
@@ -55,9 +64,59 @@ h2 {
   border-radius: 30pt;
   padding: 45pt;
   width: 360pt;
+  display: flex;
+  flex-direction: column;
+  gap: 30pt;
 }
 
 .variable-entry {
+  align-items: center;
   background-color: white;
   border-radius: 20pt;
+  display: flex;
+  flex-direction: row;
+  gap: 60pt;
+  height: 55pt;
+  padding-left: 25pt;
+  padding-right: 25pt;
+  width: fit-content;
+}
+
+.variable-entry-name {
+  display: inline-block;
+  font-family: 'Solway';
+  font-weight: bold;
+  font-size: 20pt;
+  width: 69pt;
+}
+
+.input {
+  border-radius: 15pt;
+  border-width: 2pt;
+  border-color: var(--secondary-color);
+  display: inline-block;
+  font-family: 'Solway';
+  font-size: 20pt;
+  width: 64pt;
+}
+
+.input.wide {
+  width: 120pt;
+}
+
+#variables-and-init-values {
+  display: flex;
+  flex-direction: column;
+  gap: 10pt;
+}
+
+.variables-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10pt;
+}
+
+.variable-add-or-del-img {
+  height: 21pt;
+  width: 21pt;
 }

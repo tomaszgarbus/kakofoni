@@ -196,17 +196,72 @@ onMounted(() => {
 
   <!-- Config -->
   <p>
-    <h1>User Config:</h1>
     <div class="block">
-      <h2>Variables and initial values</h2>
-      <p class="section-hint">
-        First, list all variables you want to use and set their initial (step 0) values. You can add up to 10 variables.
-      </p>
-      <span v-for="variable in userConfig.variables">
-        <div class="variable-entry">
-          <img src="@/assets/icons/close.svg" />
+      <div id="variables-and-init-values">
+        <h2>Variables and initial values</h2>
+        <p class="section-hint">
+          First, list all variables you want to use and set their initial (step 0) values.
+          You can add up to 10 variables.
+        </p>
+        <div class="variables-column">
+          <span v-for="variable in userConfig.variables">
+            <div class="variable-entry">
+              <span class="variable-entry-name">
+                {{ variable }}
+              </span>
+              <select name="Initial value" id="init-value" class="input">
+                <option
+                  v-for="note in Array(notes.length).keys()"
+                  value="{{ note }}">
+                  {{ note }}
+                </option>
+              </select>
+              <img src="@/assets/icons/close.svg" class="variable-add-or-del-img"/>
+            </div>
+          </span>
+          <div class="variable-entry">
+            <span class="variable-entry-name">
+              Name:
+            </span>
+            <input type="text" class="input" />
+            <img src="@/assets/icons/add.svg" class="variable-add-or-del-img"/>
+          </div>
         </div>
-      </span>
+      </div>
+      <div id="step-transform">
+        <h2>Step transform</h2>
+        <p class="section-hint">
+          Now define the step transformation formulas. You can use variable names (evaluated at step n-1), numerical constants, parentheses and operations + and *.
+        </p>
+        <div class="variables-column">
+          <span v-for="variable in userConfig.variables">
+            <div class="variable-entry">
+              <span class="variable-entry-name">
+                {{ variable }}
+              </span>
+              <input type="text" class="input wide" />
+            </div>
+          </span>
+        </div>
+      </div>
+      <div id="what-do-you-wanna-hear">
+        <h2>What do you wanna hear?</h2>
+        <p class="section-hint">
+          Select which variables you’d like to be played and in which octave.
+        </p>
+        <div class="variables-column">
+          <span v-for="variable in userConfig.variables">
+            <div class="variable-entry">
+              <span class="variable-entry-name">
+                {{ variable }}
+              </span>
+            </div>
+          </span>
+        </div>
+      </div>
+      <div id="ready">
+        <h2>Ready?</h2>
+      </div>
     </div>
     <ul>
       <li v-for="variable in userConfig.variables">
