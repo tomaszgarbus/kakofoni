@@ -17,7 +17,9 @@
     "pinia": "^2.1.7",
     "tone": "^14.7.77",
     "vue": "^3.4.21",
-    "vue-router": "^4.3.0"
+    "vue-router": "^4.3.0",
+    "vue-toast-notification": "^3.1.2",
+    "vue-toastification": "^2.0.0-rc.5"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.8.0",
