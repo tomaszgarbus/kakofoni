@@ -40,8 +40,8 @@ h1 {
   background-clip: text;
   color: transparent;
   font-family: 'Solway';
-  font-size: 36pt;
-  margin: 0pt;
+  font-size: 36px;
+  margin: 0px;
 }
 
 h2 {
@@ -49,74 +49,82 @@ h2 {
   background-clip: text;
   color: transparent;
   font-family: 'Solway';
-  font-size: 30pt;
-  margin: 0pt;
+  font-size: 30px;
+  margin: 0px;
 }
 
 .section-hint {
   color: var(--grey-600);
   font-family: 'Solway';
-  font-size: 13pt;
+  font-size: 13px;
 }
 
 .block {
   background-color: var(--block-bgcolor);
-  border-radius: 30pt;
-  padding: 45pt;
-  width: 360pt;
+  border-radius: 30px;
+  padding: 45px;
+  width: 360px;
   display: flex;
   flex-direction: column;
-  gap: 30pt;
+  gap: 30px;
 }
 
 .variable-entry {
   align-items: center;
   background-color: white;
-  border-radius: 20pt;
+  border-radius: 20px;
   display: flex;
   flex-direction: row;
-  gap: 60pt;
-  height: 55pt;
-  padding-left: 25pt;
-  padding-right: 25pt;
+  gap: 60px;
+  height: 55px;
+  padding-left: 25px;
+  padding-right: 25px;
   width: fit-content;
 }
 
-.variable-entry-name {
+.variable-entry-name, .variable-8va {
   display: inline-block;
   font-family: 'Solway';
   font-weight: bold;
-  font-size: 20pt;
-  width: 69pt;
+  font-size: 20px;
+}
+
+.variable-entry-name {
+  width: 69px;
 }
 
 .input {
-  border-radius: 15pt;
-  border-width: 2pt;
+  border-radius: 15px;
+  border-width: 2px;
   border-color: var(--secondary-color);
   display: inline-block;
   font-family: 'Solway';
-  font-size: 20pt;
-  width: 64pt;
+  font-size: 20px;
+  padding: 0px;
+  width: 64px;
 }
 
 .input.wide {
-  width: 120pt;
+  width: 120px;
 }
 
 #variables-and-init-values {
   display: flex;
   flex-direction: column;
-  gap: 10pt;
+  gap: 10px;
 }
 
 .variables-column {
   display: flex;
   flex-direction: column;
-  gap: 10pt;
+  gap: 10px;
 }
 
 .variable-add-or-del-img {
-  height: 21pt;
-  width: 21pt;
+  height: 21px;
+  width: 21px;
+}
+
+.variable-play-on-or-off {
+  height: 30px;
 }

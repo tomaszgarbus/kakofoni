@@ -255,6 +255,15 @@ onMounted(() => {
               <span class="variable-entry-name">
                 {{ variable }}
               </span>
+              <img src="@/assets/icons/on.svg" class="variable-play-on-or-off"/>
+              <span class="variable-8va">8va:</span>
+              <select name="{{variable}} 8va" id="{{variable}}-init-value" class="input" value="2">
+                <option
+                  v-for="octave in [1, 2, 3, 4, 5, 6]"
+                  value="{{ octave }}">
+                  {{ octave }}
+                </option>
+              </select>
             </div>
           </span>
         </div>
