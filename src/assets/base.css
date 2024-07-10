@@ -75,7 +75,7 @@ h2 {
   border-radius: 20px;
   display: flex;
   flex-direction: row;
-  gap: 60px;
+  gap: 10px;
   height: 55px;
   padding-left: 25px;
   padding-right: 25px;
@@ -123,8 +123,17 @@ h2 {
 .variable-add-or-del-img {
   height: 21px;
   width: 21px;
+  cursor: pointer;
 }
 
 .variable-play-on-or-off {
   height: 30px;
+  cursor: pointer;
+}
+
+#ready {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
 }

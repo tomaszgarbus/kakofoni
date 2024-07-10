@@ -7,6 +7,7 @@ import type {
   VariablesToPlay, StepDefinition
 } from './types.js'
 import { expressionToVarTransform  } from './step_definition_parser.js';
+import { useToast } from "vue-toastification";
 
 var history = reactive<History>({
   states: [],
@@ -46,6 +47,13 @@ class UserConfig {
 
   public addVariable(name: VariableName): boolean {
     if (this.variables.includes(name)) {
+      const toast = useToast();
+      toast.error(`The variable ${name} already exists.`);
+      return false;
+    }
+    if (name === '') {
+      const toast = useToast();
+      toast.error(`Name cannot be empty.`);
       return false;
     }
     this.variables.push(name);
@@ -135,7 +143,7 @@ function updateChart() {
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
-    .attr("transform", `translate(${margin.left},${margin.top}`);
+    .attr("transform", `translate(${margin.left},${margin.top})`);
 
   const x = d3
     .scaleLinear()
@@ -216,15 +224,17 @@ onMounted(() => {
                   {{ note }}
                 </option>
               </select>
-              <img src="@/assets/icons/close.svg" class="variable-add-or-del-img"/>
+              <img src="@/assets/icons/close.svg" class="variable-add-or-del-img"
+                @click="userConfig.deleteVariable(variable)"/>
             </div>
           </span>
           <div class="variable-entry">
             <span class="variable-entry-name">
               Name:
             </span>
-            <input type="text" class="input" />
-            <img src="@/assets/icons/add.svg" class="variable-add-or-del-img"/>
+            <input type="text" class="input" v-model="newVar" />
+            <img src="@/assets/icons/add.svg" class="variable-add-or-del-img"
+              @click="userConfig.addVariable(newVar)"/>
           </div>
         </div>
       </div>
@@ -269,7 +279,8 @@ onMounted(() => {
         </div>
       </div>
       <div id="ready">
-        <h2>Ready?</h2>
+        <h2 style="display: inline">Ready?</h2>
+        <img src="@/assets/icons/play.svg" />
       </div>
     </div>
     <h2>Variables to play</h2>
