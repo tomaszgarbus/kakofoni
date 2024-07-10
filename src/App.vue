@@ -209,7 +209,7 @@ onMounted(() => {
               <span class="variable-entry-name">
                 {{ variable }}
               </span>
-              <select name="Initial value" id="init-value" class="input">
+              <select name="Initial value" id="init-value" class="input" v-model="userConfig.startState[variable]">
                 <option
                   v-for="note in Array(notes.length).keys()"
                   value="{{ note }}">
@@ -239,7 +239,7 @@ onMounted(() => {
               <span class="variable-entry-name">
                 {{ variable }}
               </span>
-              <input type="text" class="input wide" />
+              <input type="text" class="input wide" v-model="userConfig.unparsedVarTransforms[variable]" />
             </div>
           </span>
         </div>
@@ -272,23 +272,6 @@ onMounted(() => {
         <h2>Ready?</h2>
       </div>
     </div>
-    <ul>
-      <li v-for="variable in userConfig.variables">
-        {{ variable }}
-        <input type="text" v-model="userConfig.startState[variable]">
-        <button @click="userConfig.deleteVariable(variable)">Delete</button>
-      </li>
-      Add variable: <input type="text" v-model="newVar"> <button @click="userConfig.addVariable(newVar)">Add</button>
-    </ul>
-    <h2>Step definition</h2>
-    <ul>
-      <li v-for="variable in userConfig.variables">
-        {{ variable }}:
-        <input
-          type="text"
-          v-model="userConfig.unparsedVarTransforms[variable]"/>
-      </li>
-    </ul>
     <h2>Variables to play</h2>
     <ul>
       <li v-for="variable in userConfig.variables">
