@@ -6,7 +6,7 @@ import type {
   History, VariableName, VariablesState,
   VariablesToPlay, StepDefinition
 } from './types.js'
-import { expressionToVarTransform  } from './step_definition_parser.js';
+import { expressionToVarTransform  } from './step_definition_parser';
 import { useToast } from "vue-toastification";
 
 var history = reactive<History>({
@@ -14,6 +14,16 @@ var history = reactive<History>({
 });
 
 const fibonacciVariablesToPlay: VariablesToPlay = ['f0', 'f1']
+
+const fibonacciStartState: VariablesState = {
+  'f0': 1,
+  'f1': 1
+}
+
+const fibonacciUnparsedTransforms = {
+  'f0': 'f1',
+  'f1': 'f0+f1'
+}
 
 const fibonacciVariables: Array<VariableName> = ['f0', 'f1']
 
@@ -28,13 +38,16 @@ var newVar: string = "";
 // Meant to be used as singleton.
 class UserConfig {
   public variables: Array<VariableName> = reactive(fibonacciVariables);
-  public startState: VariablesState = {};
+  public startState: VariablesState = fibonacciStartState;
   public unparsedVarTransforms: {
     [variable: VariableName]: string
-  } = {};
+  } = fibonacciUnparsedTransforms;
   public playVariable: {
     [variable: VariableName]: boolean
-  } = {};
+  } = {
+    'f0': true,
+    'f1': true
+  };
 
   public deleteVariable(name: VariableName): boolean {
     const idx = this.variables.indexOf(name);
@@ -155,7 +168,8 @@ function updateChart() {
         [0, notes.length]
       )
       .range([0, height]);
-  const colors = ['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf','#999999'];
+  const colors = ['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628',
+                  '#f781bf','#999999'];
   
   const lines: { [varName: VariableName]: d3.Line<VariablesState> } = {};
   for (let variable of userConfig.variables) {
@@ -217,10 +231,13 @@ onMounted(() => {
               <span class="variable-entry-name">
                 {{ variable }}
               </span>
-              <select name="Initial value" id="init-value" class="input" v-model="userConfig.startState[variable]">
+              <select name="Initial value" id="init-value" class="input"
+                  v-model="userConfig.startState[variable]">
                 <option
                   v-for="note in Array(notes.length).keys()"
-                  value="{{ note }}">
+                  value="{{ note }}"
+                  :selected="note == userConfig.startState[variable]"
+                  >
                   {{ note }}
                 </option>
               </select>
@@ -241,7 +258,8 @@ onMounted(() => {
       <div id="step-transform">
         <h2>Step transform</h2>
         <p class="section-hint">
-          Now define the step transformation formulas. You can use variable names (evaluated at step n-1), numerical constants, parentheses and operations + and *.
+          Now define the step transformation formulas. You can use variable names
+          (evaluated at step n-1), numerical constants, parentheses and operations + and *.
         </p>
         <div class="variables-column">
           <span v-for="variable in userConfig.variables">
@@ -249,7 +267,8 @@ onMounted(() => {
               <span class="variable-entry-name">
                 {{ variable }}
               </span>
-              <input type="text" class="input wide" v-model="userConfig.unparsedVarTransforms[variable]" />
+              <input type="text" class="input wide"
+                v-model="userConfig.unparsedVarTransforms[variable]" />
             </div>
           </span>
         </div>
@@ -294,10 +313,12 @@ onMounted(() => {
   <!-- Piano -->
   <p>
     <div v-for="note in notes">
-      <div v-if="!note.includes('#')" class="white-key" id="{{ note }}" :ref="(el) => { noteRefs[note].value = el}">
+      <div v-if="!note.includes('#')" class="white-key" id="{{ note }}"
+          :ref="(el) => { noteRefs[note].value = el}">
         {{ note }}
       </div>
-      <div v-if="note.includes('#')" class="black-key" id="{{ note }}" :ref="(el) => { noteRefs[note].value = el}">
+      <div v-if="note.includes('#')" class="black-key" id="{{ note }}"
+          :ref="(el) => { noteRefs[note].value = el}">
         {{ note }}
       </div>
     </div>
