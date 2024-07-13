@@ -6,22 +6,15 @@ import type {
   History, VariableName, VariablesState,
   VariableOctaves, VariablesToPlay, StepDefinition
 } from './types.js'
-import { expressionToVarTransform  } from './step_definition_parser';
-import { useToast } from "vue-toastification";
-import UserConfig from './user_config';
-
-
-const notes = [
-    "C", "C#", "D", "D#",
-    "E", "F", "F#", "G",
-    "G#", "A", "A#", "B",
-    "C"]
-
-const octaves = [
-  "1", "2", "3", "4", "5", "6"
-]
+import { expressionToVarTransform  } from './step_definition_parser'
+import { useToast } from "vue-toastification"
+import UserConfig from './user_config'
+import Piano from './Piano.vue'
+import { notes, octaves } from './constants'
 
 var newVar: string = "";
+
+var pianoRef: Ref = ref(null);
 
 const userConfig = reactive(new UserConfig());
 
@@ -32,12 +25,6 @@ function nextStep(
     newState[key] = stepDefinition[key](state) % notes.length;
   }
   return newState;
-}
-
-const noteRefs: { [note: string]: Ref } = {};
-
-for (var note of notes) {
-  noteRefs[note] = ref(null);
 }
 
 type PlayState = {
@@ -65,16 +52,14 @@ function play(
   var state = startState;
 
   playState.playing = new Tone.Loop(time => {
-    for (var note of notes) {
-      noteRefs[note].value.classList.remove('active');
-    }
-
+    const newActiveNotes: Array<string> = [];
     for (let variable of variablesToPlay) {
       const value = state[variable];
       var noteToPlay = notes[value] + variableOctaves[variable];
       synth.triggerAttackRelease(noteToPlay, "8n", time);
-      noteRefs[notes[value]].value.classList.add('active');
+      newActiveNotes.push(notes[value]);
     }
+    pianoRef.value.updatePianoKeys(newActiveNotes);
     playState.history.states.push(state);
     updateChart();
 
@@ -184,6 +169,7 @@ onMounted(() => {
     TODO:
     <ul>
       <li>Choice of factory presets</li>
+      <li>Play the second C an octave higher</li>
       <li>Loading and downloading presets</li>
       <li>Nicer piano</li>
       <li>Matching colors between piano and plot</li>
@@ -299,33 +285,8 @@ onMounted(() => {
   </p>
 
   <!-- Piano -->
-  <p>
-    <div v-for="note in notes">
-      <div v-if="!note.includes('#')" class="white-key" id="{{ note }}"
-          :ref="(el) => { noteRefs[note].value = el}">
-        {{ note }}
-      </div>
-      <div v-if="note.includes('#')" class="black-key" id="{{ note }}"
-          :ref="(el) => { noteRefs[note].value = el}">
-        {{ note }}
-      </div>
-    </div>
-  </p>
+  <Piano :ref="(el) => { pianoRef = el }" />
 
   <!--Visualizer-->
   <svg></svg>
 </template>
-
-<style scoped>
-.white-key {
-  color: black;
-  background-color: white;
-}
-.black-key {
-  color: white;
-  background-color: black;
-}
-.active {
-  background-color: red;
-}
-</style>
