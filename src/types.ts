@@ -14,11 +14,14 @@ type StepDefinition = {
     [variable: VariableName]: VarTransform
 };
 
+type VariableOctaves = { [variable: VariableName]: string }
+
 export type {
     History,
     VariableName,
     VariablesState,
     VariablesToPlay,
+    VariableOctaves
     StepDefinition,
     VarTransform
 };

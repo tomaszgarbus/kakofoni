@@ -4,7 +4,7 @@ import * as d3 from 'd3'
 import { onMounted, reactive, ref, type Ref } from 'vue'
 import type {
   History, VariableName, VariablesState,
-  VariablesToPlay, StepDefinition
+  VariableOctaves, VariablesToPlay, StepDefinition
 } from './types.js'
 import { expressionToVarTransform  } from './step_definition_parser';
 import { useToast } from "vue-toastification";
@@ -28,16 +28,20 @@ const fibonacciUnparsedTransforms = {
 const fibonacciVariables: Array<VariableName> = ['f0', 'f1']
 
 const notes = [
-    "C2", "C#2", "D2", "D#2",
-    "E2", "F2", "F#2", "G2",
-    "G#2", "A2", "A#2", "B2",
-    "C3"]
+    "C", "C#", "D", "D#",
+    "E", "F", "F#", "G",
+    "G#", "A", "A#", "B",
+    "C"]
+
+const octaves = [
+  "1", "2", "3", "4", "5", "6"
+]
 
 var newVar: string = "";
 
 // Meant to be used as singleton.
 class UserConfig {
-  public variables: Array<VariableName> = reactive(fibonacciVariables);
+  public variables: Array<VariableName> = fibonacciVariables;
   public startState: VariablesState = fibonacciStartState;
   public unparsedVarTransforms: {
     [variable: VariableName]: string
@@ -48,6 +52,10 @@ class UserConfig {
     'f0': true,
     'f1': true
   };
+  public variableOctaves: VariableOctaves = {
+    'f0': '2',
+    'f1': '4'
+  }
 
   public deleteVariable(name: VariableName): boolean {
     const idx = this.variables.indexOf(name);
@@ -74,9 +82,10 @@ class UserConfig {
   }
 }
 
-const userConfig = new UserConfig();
+const userConfig = reactive(new UserConfig());
 
-function nextStep(state: VariablesState, stepDefinition: StepDefinition): VariablesState {
+function nextStep(
+    state: VariablesState, stepDefinition: StepDefinition): VariablesState {
   const newState: VariablesState = {};
   for (let key in state) {
     newState[key] = stepDefinition[key](state) % notes.length;
@@ -100,7 +109,9 @@ function stop() {
 function play(
   startState: VariablesState,
   stepDefinition: StepDefinition,
-   variablesToPlay: VariablesToPlay) {
+  variablesToPlay: VariablesToPlay,
+  variableOctaves: VariableOctaves) {
+  console.log(startState)
   const synth = new Tone.PolySynth().toDestination();
   var state = startState;
 
@@ -111,14 +122,17 @@ function play(
 
     for (let variable of variablesToPlay) {
       const value = state[variable];
-      synth.triggerAttackRelease(notes[value], "8n", time);
+      var noteToPlay = notes[value] + variableOctaves[variable];
+      synth.triggerAttackRelease(noteToPlay, "8n", time);
       noteRefs[notes[value]].value.classList.add('active');
     }
     history.states.push(state);
     updateChart();
 
+    console.log(state);
+
     state = nextStep(state, stepDefinition);
-  }, "4n").start(0);
+  }, "8n").start(0);
   // Start
   Tone.Transport.bpm.rampTo(160);
   Tone.Transport.start()
@@ -141,6 +155,7 @@ function validateAndPlay() {
   play(userConfig.startState,
     stepDefinition,
     variablesToPlay,
+    userConfig.variableOctaves
   )
 }
 
@@ -168,8 +183,8 @@ function updateChart() {
         [0, notes.length]
       )
       .range([0, height]);
-  const colors = ['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628',
-                  '#f781bf','#999999'];
+  const colors = ['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33',
+                  '#a65628','#f781bf','#999999'];
   
   const lines: { [varName: VariableName]: d3.Line<VariablesState> } = {};
   for (let variable of userConfig.variables) {
@@ -222,8 +237,8 @@ onMounted(() => {
       <div id="variables-and-init-values">
         <h2>Variables and initial values</h2>
         <p class="section-hint">
-          First, list all variables you want to use and set their initial (step 0) values.
-          You can add up to 10 variables.
+          First, list all variables you want to use and set their initial
+          (step 0) values. You can add up to 10 variables.
         </p>
         <div class="variables-column">
           <span v-for="variable in userConfig.variables">
@@ -231,17 +246,18 @@ onMounted(() => {
               <span class="variable-entry-name">
                 {{ variable }}
               </span>
-              <select name="Initial value" id="init-value" class="input"
+              <select name="Initial value" id="init-value"
+                  class="input"
                   v-model="userConfig.startState[variable]">
                 <option
                   v-for="note in Array(notes.length).keys()"
-                  value="{{ note }}"
-                  :selected="note == userConfig.startState[variable]"
+                  :value="note"
                   >
                   {{ note }}
                 </option>
               </select>
-              <img src="@/assets/icons/close.svg" class="variable-add-or-del-img"
+              <img src="@/assets/icons/close.svg"
+                class="variable-add-or-del-img"
                 @click="userConfig.deleteVariable(variable)"/>
             </div>
           </span>
@@ -258,8 +274,9 @@ onMounted(() => {
       <div id="step-transform">
         <h2>Step transform</h2>
         <p class="section-hint">
-          Now define the step transformation formulas. You can use variable names
-          (evaluated at step n-1), numerical constants, parentheses and operations + and *.
+          Now define the step transformation formulas. You can use variable
+          names (evaluated at step n-1), numerical constants, parentheses and
+          operations + and *.
         </p>
         <div class="variables-column">
           <span v-for="variable in userConfig.variables">
@@ -284,12 +301,14 @@ onMounted(() => {
               <span class="variable-entry-name">
                 {{ variable }}
               </span>
-              <img src="@/assets/icons/on.svg" class="variable-play-on-or-off"/>
+              <img src="@/assets/icons/on.svg"
+                class="variable-play-on-or-off"/>
               <span class="variable-8va">8va:</span>
-              <select name="{{variable}} 8va" id="{{variable}}-init-value" class="input" value="2">
+              <select name="{{variable}} 8va" id="variable-octave"
+                  class="input" v-model="userConfig.variableOctaves[variable]">
                 <option
-                  v-for="octave in [1, 2, 3, 4, 5, 6]"
-                  value="{{ octave }}">
+                  v-for="octave in octaves"
+                  :value="octave">
                   {{ octave }}
                 </option>
               </select>
@@ -305,7 +324,8 @@ onMounted(() => {
     <h2>Variables to play</h2>
     <ul>
       <li v-for="variable in userConfig.variables">
-        {{ variable }}: <input type="checkbox" v-model="userConfig.playVariable[variable]" />
+        {{ variable }}: <input type="checkbox"
+          v-model="userConfig.playVariable[variable]" />
       </li>
     </ul>
   </p>
