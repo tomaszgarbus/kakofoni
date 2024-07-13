@@ -8,24 +8,8 @@ import type {
 } from './types.js'
 import { expressionToVarTransform  } from './step_definition_parser';
 import { useToast } from "vue-toastification";
+import UserConfig from './user_config';
 
-var history = reactive<History>({
-  states: [],
-});
-
-const fibonacciVariablesToPlay: VariablesToPlay = ['f0', 'f1']
-
-const fibonacciStartState: VariablesState = {
-  'f0': 1,
-  'f1': 1
-}
-
-const fibonacciUnparsedTransforms = {
-  'f0': 'f1',
-  'f1': 'f0+f1'
-}
-
-const fibonacciVariables: Array<VariableName> = ['f0', 'f1']
 
 const notes = [
     "C", "C#", "D", "D#",
@@ -38,49 +22,6 @@ const octaves = [
 ]
 
 var newVar: string = "";
-
-// Meant to be used as singleton.
-class UserConfig {
-  public variables: Array<VariableName> = fibonacciVariables;
-  public startState: VariablesState = fibonacciStartState;
-  public unparsedVarTransforms: {
-    [variable: VariableName]: string
-  } = fibonacciUnparsedTransforms;
-  public playVariable: {
-    [variable: VariableName]: boolean
-  } = {
-    'f0': true,
-    'f1': true
-  };
-  public variableOctaves: VariableOctaves = {
-    'f0': '2',
-    'f1': '4'
-  }
-
-  public deleteVariable(name: VariableName): boolean {
-    const idx = this.variables.indexOf(name);
-    if (idx == -1) {
-      return false;
-    }
-    this.variables.splice(idx, 1);
-    return true;
-  }
-
-  public addVariable(name: VariableName): boolean {
-    if (this.variables.includes(name)) {
-      const toast = useToast();
-      toast.error(`The variable ${name} already exists.`);
-      return false;
-    }
-    if (name === '') {
-      const toast = useToast();
-      toast.error(`Name cannot be empty.`);
-      return false;
-    }
-    this.variables.push(name);
-    return true;
-  }
-}
 
 const userConfig = reactive(new UserConfig());
 
@@ -99,11 +40,19 @@ for (var note of notes) {
   noteRefs[note] = ref(null);
 }
 
-var currentlyPlaying: Tone.Loop | null;
+type PlayState = {
+  playing: Tone.Loop | null;
+  history: History;
+}
+
+var playState: PlayState = reactive({
+  playing: null,
+  history: {states: []}
+});
 
 function stop() {
-  currentlyPlaying?.stop();
-  currentlyPlaying = null;
+  playState.playing?.stop();
+  playState.playing = null;
 }
 
 function play(
@@ -115,7 +64,7 @@ function play(
   const synth = new Tone.PolySynth().toDestination();
   var state = startState;
 
-  currentlyPlaying = new Tone.Loop(time => {
+  playState.playing = new Tone.Loop(time => {
     for (var note of notes) {
       noteRefs[note].value.classList.remove('active');
     }
@@ -126,7 +75,7 @@ function play(
       synth.triggerAttackRelease(noteToPlay, "8n", time);
       noteRefs[notes[value]].value.classList.add('active');
     }
-    history.states.push(state);
+    playState.history.states.push(state);
     updateChart();
 
     console.log(state);
@@ -138,14 +87,20 @@ function play(
   Tone.Transport.start()
 }
 
-function validateAndPlay() {
+function validateAndPlay(): void {
   const variablesToPlay: VariablesToPlay = [];
   const stepDefinition: StepDefinition = {};
   for (let variable of userConfig.variables) {
-    stepDefinition[variable] =
-      expressionToVarTransform(
-        userConfig.unparsedVarTransforms[variable],
-        userConfig.variables);
+    try {
+      stepDefinition[variable] =
+        expressionToVarTransform(
+          userConfig.unparsedVarTransforms[variable],
+          userConfig.variables);
+    } catch (e) {
+      useToast().error(`Failed to parse transform for variable ${variable}.
+Error: ${(e as Error).message}.`);
+      return;
+    }
   }
   for (let variable of userConfig.variables) {
     if (userConfig.playVariable[variable]) {
@@ -175,7 +130,7 @@ function updateChart() {
 
   const x = d3
     .scaleLinear()
-    .domain([0, history.states.length])
+    .domain([0, playState.history.states.length])
     .range([0, width]);
   const y = d3
       .scaleLinear()
@@ -215,7 +170,7 @@ function updateChart() {
     })
     .attr("stroke-width", 1.5)
     .attr('d', function (g: VariableName) {
-      return lines[g](history.states);
+      return lines[g](playState.history.states);
     });
 }
 
@@ -226,8 +181,18 @@ onMounted(() => {
 
 <template>
   <div>
-    <button @click="validateAndPlay">play sound</button>
-    <button @click="stop">stop playing</button>
+    TODO:
+    <ul>
+      <li>Choice of factory presets</li>
+      <li>Loading and downloading presets</li>
+      <li>Nicer piano</li>
+      <li>Matching colors between piano and plot</li>
+      <li>Better plot</li>
+      <li>For each variable, instead of "play/no play",
+        give a choice from preprogrammed rhythms (only 1s, only 0s,
+        fibonacci word, thue morse word etc.)</li>
+      <li>Split up the code.</li>
+    </ul>
   </div>
   <br>
 
@@ -302,10 +267,17 @@ onMounted(() => {
                 {{ variable }}
               </span>
               <img src="@/assets/icons/on.svg"
-                class="variable-play-on-or-off"/>
+                class="variable-play-on-or-off"
+                @click="userConfig.playVariable[variable] = false"
+                v-if="userConfig.playVariable[variable]" />
+              <img src="@/assets/icons/off.svg"
+                class="variable-play-on-or-off"
+                @click="userConfig.playVariable[variable] = true"
+                v-if="!userConfig.playVariable[variable]" />
               <span class="variable-8va">8va:</span>
               <select name="{{variable}} 8va" id="variable-octave"
-                  class="input" v-model="userConfig.variableOctaves[variable]">
+                  class="input" v-model="userConfig.variableOctaves[variable]"
+                  :disabled="!userConfig.playVariable[variable]">
                 <option
                   v-for="octave in octaves"
                   :value="octave">
@@ -318,16 +290,12 @@ onMounted(() => {
       </div>
       <div id="ready">
         <h2 style="display: inline">Ready?</h2>
-        <img src="@/assets/icons/play.svg" />
+        <img @click="validateAndPlay" src="@/assets/icons/play.svg"
+          style="cursor: pointer" v-if="playState.playing == null" />
+        <img @click="stop" src="@/assets/icons/stop.svg"
+          style="cursor: pointer" v-if="playState.playing != null" />
       </div>
     </div>
-    <h2>Variables to play</h2>
-    <ul>
-      <li v-for="variable in userConfig.variables">
-        {{ variable }}: <input type="checkbox"
-          v-model="userConfig.playVariable[variable]" />
-      </li>
-    </ul>
   </p>
 
   <!-- Piano -->

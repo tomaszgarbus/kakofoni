@@ -21,7 +21,7 @@ export type {
     VariableName,
     VariablesState,
     VariablesToPlay,
-    VariableOctaves
+    VariableOctaves,
     StepDefinition,
     VarTransform
 };
