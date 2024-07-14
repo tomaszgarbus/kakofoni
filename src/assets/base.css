@@ -63,10 +63,20 @@ h2 {
   background-color: var(--block-bgcolor);
   border-radius: 30px;
   padding: 45px;
-  width: 360px;
+}
+
+#config-block {
   display: flex;
   flex-direction: column;
+  width: 360px;
   gap: 30px;
+}
+
+#piano-block {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-content: flex-start;
 }
 
 .variable-entry {
@@ -136,4 +146,9 @@ h2 {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+}
+
+#main-frame {
+  display: flex;
+  flex-direction: row;
 }

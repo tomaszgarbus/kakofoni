@@ -12,20 +12,15 @@ import UserConfig from './user_config'
 import Piano from './Piano.vue'
 import { notes, octaves } from './constants'
 
+/* STATE */
+
 var newVar: string = "";
 
 var pianoRef: Ref = ref(null);
 
-const userConfig = reactive(new UserConfig());
+var activeOctaves = reactive([1, 2, 3, 4, 5, 6])
 
-function nextStep(
-    state: VariablesState, stepDefinition: StepDefinition): VariablesState {
-  const newState: VariablesState = {};
-  for (let key in state) {
-    newState[key] = stepDefinition[key](state) % notes.length;
-  }
-  return newState;
-}
+const userConfig = reactive(new UserConfig());
 
 type PlayState = {
   playing: Tone.Loop | null;
@@ -37,6 +32,17 @@ var playState: PlayState = reactive({
   history: {states: []}
 });
 
+/* LOGIC */
+
+function nextStep(
+    state: VariablesState, stepDefinition: StepDefinition): VariablesState {
+  const newState: VariablesState = {};
+  for (let key in state) {
+    newState[key] = stepDefinition[key](state) % notes.length;
+  }
+  return newState;
+}
+
 function stop() {
   playState.playing?.stop();
   playState.playing = null;
@@ -47,7 +53,6 @@ function play(
   stepDefinition: StepDefinition,
   variablesToPlay: VariablesToPlay,
   variableOctaves: VariableOctaves) {
-  console.log(startState)
   const synth = new Tone.PolySynth().toDestination();
   var state = startState;
 
@@ -57,13 +62,11 @@ function play(
       const value = state[variable];
       var noteToPlay = notes[value] + variableOctaves[variable];
       synth.triggerAttackRelease(noteToPlay, "8n", time);
-      newActiveNotes.push(notes[value]);
+      newActiveNotes.push(noteToPlay);
     }
     pianoRef.value.updatePianoKeys(newActiveNotes);
     playState.history.states.push(state);
     updateChart();
-
-    console.log(state);
 
     state = nextStep(state, stepDefinition);
   }, "8n").start(0);
@@ -101,12 +104,12 @@ Error: ${(e as Error).message}.`);
 
 function updateChart() {
   // Clear the graph first.
-  d3.selectAll("svg > *").remove();
+  d3.selectAll("#visualiser > *").remove();
 
   const margin = {top: 10, right: 30, bottom: 30, left: 60};
   const width = 800 - margin.left - margin.right;
   const height = 500 - margin.top - margin.bottom;
-  const svg = d3.select("svg")
+  const svg = d3.select("#visualiser")
   svg
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
@@ -183,8 +186,8 @@ onMounted(() => {
   <br>
 
   <!-- Config -->
-  <p>
-    <div class="block">
+  <div id="main-frame">
+    <div class="block" id="config-block">
       <div id="variables-and-init-values">
         <h2>Variables and initial values</h2>
         <p class="section-hint">
@@ -282,11 +285,13 @@ onMounted(() => {
           style="cursor: pointer" v-if="playState.playing != null" />
       </div>
     </div>
-  </p>
 
-  <!-- Piano -->
-  <Piano :ref="(el) => { pianoRef = el }" />
+    <!-- Piano -->
+    <Piano
+      :ref="(el) => { pianoRef = el }"
+      :octaves="activeOctaves" />
+  </div>
 
   <!--Visualizer-->
-  <svg></svg>
+  <svg id="visualiser"></svg>
 </template>

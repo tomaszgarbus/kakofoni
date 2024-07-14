@@ -29,7 +29,6 @@ function isLetterOrDigit(str: string): boolean {
 
 function isVariableNameTail(str: string): boolean {
   for (let char of str) {
-    console.log(char);
     if (!isLetterOrDigit(char)) {
       return false;
     }
@@ -68,7 +67,6 @@ function expressionToVarTransform(
   expr: string,
   variableNames: Array<VariableName>,
 ): VarTransform {
-  console.log(expr);
   expr = expr.trim();
   if (isVariableName(expr)) {
     if (!variableNames.includes(expr)) {
