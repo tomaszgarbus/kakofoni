@@ -27,7 +27,7 @@ defineExpose({
 
 <template>
   <div>
-    <h2>8va: {{ octave }}</h2>
+    <h2 style="margin-bottom: 20px">8va: {{ octave }}</h2>
     <svg :ref="(el) => { svgRef = el }" width="400" height="227" viewBox="0 0 400 227" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g id="Keyboard">
         <g id="c">
