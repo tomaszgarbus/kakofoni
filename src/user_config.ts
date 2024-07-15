@@ -1,3 +1,4 @@
+import { colors } from './constants.js';
 import type {
   History, VariableName, VariablesState,
   VariableOctaves, VariablesToPlay, StepDefinition
@@ -56,6 +57,15 @@ class UserConfig {
     }
     this.variables.push(name);
     return true;
+  }
+
+  public getColorForVariable(name: VariableName): string {
+    for (let idx in this.variables) {
+      if (this.variables[idx] == name) {
+        return colors[idx]; 
+      }
+    }
+    return '';
   }
 }
 

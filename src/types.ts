@@ -16,6 +16,11 @@ type StepDefinition = {
 
 type VariableOctaves = { [variable: VariableName]: string }
 
+type ActiveNote = {
+  note: string,
+  color: string,
+}
+
 export type {
     History,
     VariableName,
@@ -23,5 +28,6 @@ export type {
     VariablesToPlay,
     VariableOctaves,
     StepDefinition,
-    VarTransform
+    VarTransform,
+    ActiveNote
 };

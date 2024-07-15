@@ -3,6 +3,7 @@ import { notes } from './constants'
 import { onMounted, reactive, ref, type Ref } from 'vue'
 import * as d3 from 'd3'
 import OneOctavePiano from './OneOctavePiano.vue'
+import type { ActiveNote } from './types';
 
 /* CONFIG */
 
@@ -19,18 +20,22 @@ console.log(octavePianoRefs);
 
 /* LOGIC */
 
-function updatePianoKeys(activeNotes: Array<string>): void {
-  const activeNotesPerOctave: { [octave: number]: Array<string> } = {};
+function updatePianoKeys(activeNotes: Array<ActiveNote>): void {
+  const activeNotesPerOctave: { [octave: number]: Array<ActiveNote> } = {};
   for (let octave of octaves) {
     activeNotesPerOctave[octave] = [];
   }
   for (let note of activeNotes) {
-    const octave: number = +note.charAt(note.length-1);
-    const noteValue: string = note.substring(0, note.length-1);
-    activeNotesPerOctave[octave].push(noteValue);
+    const octave: number = +note.note.charAt(note.note.length-1);
+    const noteValue: string = note.note.substring(0, note.note.length-1);
+    activeNotesPerOctave[octave].push({
+      note: noteValue,
+      color: note.color
+    });
   }
   for (let octave of octaves) {
-    octavePianoRefs[octave].value.updatePianoKeys(activeNotesPerOctave[octave]);
+    octavePianoRefs[octave].value.updatePianoKeys(
+      activeNotesPerOctave[octave]);
   }
 }
 

@@ -2,25 +2,26 @@
 import { notes, octaves } from './constants'
 import { onMounted, reactive, ref, type Ref } from 'vue'
 import * as d3 from 'd3'
+import type { ActiveNote } from './types';
 
 const props = defineProps(['octave'])
 const octave: number = props.octave
 var svgRef: Ref = ref(null);
 
-function updatePianoKeys(activeNotes: Array<string>): void {
-  for (var note of notes) {
+function updatePianoKeys(activeNotes: Array<ActiveNote>): void {
+  for (let note of notes) {
     const fill = note.endsWith('#') ? 'black' : 'white';
     svgRef.value.getElementById(note).setAttribute('fill', fill);
   }
 
-  for (var note of activeNotes) {
+  for (let note of activeNotes) {
     // TODO: Reuse --primary-color from CSS.
-    svgRef.value.getElementById(note).setAttribute('fill', '#EB3D47');
+    svgRef.value.getElementById(note.note).setAttribute('fill', note.color);
   }
 }
 
 defineExpose({
-  updatePianoKeys,
+  updatePianoKeys
 })
 
 </script>

@@ -4,13 +4,14 @@ import * as d3 from 'd3'
 import { onMounted, reactive, ref, type Ref } from 'vue'
 import type {
   History, VariableName, VariablesState,
-  VariableOctaves, VariablesToPlay, StepDefinition
+  VariableOctaves, VariablesToPlay, StepDefinition,
+  ActiveNote
 } from './types.js'
 import { expressionToVarTransform  } from './step_definition_parser'
 import { useToast } from "vue-toastification"
 import UserConfig from './user_config'
 import Piano from './Piano.vue'
-import { notes, octaves } from './constants'
+import { notes, octaves, colors } from './constants'
 
 /* STATE */
 
@@ -57,12 +58,15 @@ function play(
   var state = startState;
 
   playState.playing = new Tone.Loop(time => {
-    const newActiveNotes: Array<string> = [];
+    const newActiveNotes: Array<ActiveNote> = [];
     for (let variable of variablesToPlay) {
       const value = state[variable];
       var noteToPlay = notes[value] + variableOctaves[variable];
       synth.triggerAttackRelease(noteToPlay, "8n", time);
-      newActiveNotes.push(noteToPlay);
+      newActiveNotes.push({
+        note: noteToPlay,
+        color: userConfig.getColorForVariable(variable)
+      });
     }
     pianoRef.value.updatePianoKeys(newActiveNotes);
     playState.history.states.push(state);
@@ -126,8 +130,6 @@ function updateChart() {
         [0, notes.length]
       )
       .range([0, height]);
-  const colors = ['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33',
-                  '#a65628','#f781bf','#999999'];
   
   const lines: { [varName: VariableName]: d3.Line<VariablesState> } = {};
   for (let variable of userConfig.variables) {
@@ -153,8 +155,8 @@ function updateChart() {
     .data(groups)
     .join("path")
     .attr("fill", "none")
-    .attr("stroke", function (_, idx: number) {
-      return colors[idx];
+    .attr("stroke", function (g: VariableName) {
+      return userConfig.getColorForVariable(g);
     })
     .attr("stroke-width", 1.5)
     .attr('d', function (g: VariableName) {
