@@ -173,11 +173,10 @@ onMounted(() => {
   <div>
     TODO:
     <ul>
+      <li>Show only active octaves</li>
       <li>Choice of factory presets</li>
       <li>Play the second C an octave higher</li>
       <li>Loading and downloading presets</li>
-      <li>Nicer piano</li>
-      <li>Matching colors between piano and plot</li>
       <li>Better plot</li>
       <li>For each variable, instead of "play/no play",
         give a choice from preprogrammed rhythms (only 1s, only 0s,

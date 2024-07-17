@@ -33,8 +33,8 @@ class UserConfig {
     'f1': true
   };
   public variableOctaves: VariableOctaves = {
-    'f0': '2',
-    'f1': '4'
+    'f0': 2,
+    'f1': 4
   }
 
   public deleteVariable(name: VariableName): boolean {

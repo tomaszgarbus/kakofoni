@@ -14,7 +14,7 @@ type StepDefinition = {
     [variable: VariableName]: VarTransform
 };
 
-type VariableOctaves = { [variable: VariableName]: string }
+type VariableOctaves = { [variable: VariableName]: number }
 
 type ActiveNote = {
   note: string,
