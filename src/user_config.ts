@@ -56,6 +56,8 @@ class UserConfig {
       return false;
     }
     this.variables.push(name);
+    this.variableOctaves[name] = 3;
+    this.playVariable[name] = true;
     return true;
   }
 
