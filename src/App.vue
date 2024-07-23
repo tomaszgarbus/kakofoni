@@ -82,6 +82,7 @@ function play(
 function validateAndPlay(): void {
   const variablesToPlay: VariablesToPlay = [];
   const stepDefinition: StepDefinition = {};
+  // Validate transforms.
   for (let variable of userConfig.variables) {
     try {
       stepDefinition[variable] =
@@ -94,6 +95,24 @@ Error: ${(e as Error).message}.`);
       return;
     }
   }
+
+  // Validate octaves.
+  for (let variable of userConfig.variables) {
+    if (!userConfig.variableOctaves[variable]) {
+      useToast().error(`Select octave for variable ${variable}.`);
+      return;
+    }
+  }
+
+  // Validate initial values.
+  for (let variable of userConfig.variables) {
+    if (!userConfig.startState[variable]) {
+      useToast().error(`Select initial value for variable ${variable}.`);
+      return;
+    }
+  }
+
+  // Play.
   for (let variable of userConfig.variables) {
     if (userConfig.playVariable[variable]) {
       variablesToPlay.push(variable);
@@ -170,21 +189,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    TODO:
-    <ul>
-      <li>Show only active octaves</li>
-      <li>Choice of factory presets</li>
-      <li>Play the second C an octave higher</li>
-      <li>Loading and downloading presets</li>
-      <li>Better plot</li>
-      <li>For each variable, instead of "play/no play",
-        give a choice from preprogrammed rhythms (only 1s, only 0s,
-        fibonacci word, thue morse word etc.)</li>
-      <li>Split up the code.</li>
-    </ul>
+  <div id="logo-div">
+    <img src="@/assets/logo.svg" id="logo" />
   </div>
-  <br>
 
   <!-- Config -->
   <div id="main-frame">
@@ -202,13 +209,13 @@ onMounted(() => {
                 {{ variable }}
               </span>
               <select name="Initial value" id="init-value"
-                  class="input"
+                  class="input wide"
                   v-model="userConfig.startState[variable]">
                 <option
                   v-for="note in Array(notes.length).keys()"
                   :value="note"
                   >
-                  {{ note }}
+                  {{ note }} ({{ notes[note] }})
                 </option>
               </select>
               <img src="@/assets/icons/close.svg"
@@ -220,7 +227,7 @@ onMounted(() => {
             <span class="variable-entry-name">
               Name:
             </span>
-            <input type="text" class="input" v-model="newVar" />
+            <input type="text" class="input wide" v-model="newVar" />
             <img src="@/assets/icons/add.svg" class="variable-add-or-del-img"
               @click="userConfig.addVariable(newVar)"/>
           </div>
@@ -295,4 +302,22 @@ onMounted(() => {
 
   <!--Visualizer-->
   <svg id="visualiser"></svg>
+
+  <!--TODO-->
+  <div>
+    TODO:
+    <ul>
+      <li>Background - red and blue przerywane linie</li>
+      <li>Show only active octaves</li>
+      <li>Choice of factory presets</li>
+      <li>Play the second C an octave higher</li>
+      <li>Loading and downloading presets</li>
+      <li>Better plot</li>
+      <li>For each variable, instead of "play/no play",
+        give a choice from preprogrammed rhythms (only 1s, only 0s,
+        fibonacci word, thue morse word etc.)</li>
+      <li>Split up the code.</li>
+    </ul>
+  </div>
+  <br>
 </template>
