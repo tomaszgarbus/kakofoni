@@ -307,6 +307,7 @@ onMounted(() => {
   <div>
     TODO:
     <ul>
+      <li>Deploy</li>
       <li>Background - red and blue przerywane linie</li>
       <li>Show only active octaves</li>
       <li>Choice of factory presets</li>
