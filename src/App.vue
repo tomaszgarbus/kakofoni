@@ -9,9 +9,9 @@ import type {
 } from './types.js'
 import { expressionToVarTransform  } from './step_definition_parser'
 import { useToast } from "vue-toastification"
-import UserConfig from './user_config'
 import Piano from './Piano.vue'
 import { notes, octaves, colors } from './constants'
+import { fibonacciUserConfig } from './predefined_configs.js'
 
 /* STATE */
 
@@ -21,7 +21,7 @@ var pianoRef: Ref = ref(null);
 
 var activeOctaves = reactive([1, 2, 3, 4, 5, 6])
 
-const userConfig = reactive(new UserConfig());
+const userConfig = reactive(fibonacciUserConfig);
 
 type PlayState = {
   playing: Tone.Loop | null;
@@ -240,6 +240,10 @@ onMounted(() => {
           names (evaluated at step n-1), numerical constants, parentheses and
           operations + and *.
         </p>
+        <p class="section-hint">
+          All transforms will be applied in modular arithmetic modulo
+          {{ notes.length }}.
+        </p>
         <div class="variables-column">
           <span v-for="variable in userConfig.variables">
             <div class="variable-entry">
@@ -307,7 +311,9 @@ onMounted(() => {
   <div>
     TODO:
     <ul>
-      <li>Deploy</li>
+      <li>Add config: BPM</li>
+      <li>Add config: shuffle</li>
+      <li>Debug plot: play, add variable, pause, play</li>
       <li>Background - red and blue przerywane linie</li>
       <li>Show only active octaves</li>
       <li>Choice of factory presets</li>

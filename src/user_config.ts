@@ -5,36 +5,32 @@ import type {
 } from './types.js'
 import { useToast } from "vue-toastification";
 
-const fibonacciVariablesToPlay: VariablesToPlay = ['f0', 'f1']
-
-const fibonacciStartState: VariablesState = {
-  'f0': 1,
-  'f1': 1
-}
-
-const fibonacciUnparsedTransforms = {
-  'f0': 'f1',
-  'f1': 'f0+f1'
-}
-
-const fibonacciVariables: Array<VariableName> = ['f0', 'f1']
-
-// Meant to be used as singleton.
 class UserConfig {
-  public variables: Array<VariableName> = fibonacciVariables;
-  public startState: VariablesState = fibonacciStartState;
+  public variables: Array<VariableName>;
+  public startState: VariablesState;
   public unparsedVarTransforms: {
     [variable: VariableName]: string
-  } = fibonacciUnparsedTransforms;
+  };
   public playVariable: {
     [variable: VariableName]: boolean
-  } = {
-    'f0': true,
-    'f1': true
   };
-  public variableOctaves: VariableOctaves = {
-    'f0': 2,
-    'f1': 4
+  public variableOctaves: VariableOctaves;
+
+  constructor(
+    variables: Array<VariableName>,
+    startState: VariablesState,
+    unparsedVarTransforms: {
+      [variable: VariableName]: string
+    },
+    playVariable: {
+      [variable: VariableName]: boolean
+    },
+    variableOctaves: VariableOctaves) {
+    this.variables = variables;
+    this.startState = startState;
+    this.unparsedVarTransforms = unparsedVarTransforms;
+    this.playVariable = playVariable;
+    this.variableOctaves = variableOctaves;
   }
 
   public deleteVariable(name: VariableName): boolean {
