@@ -15,6 +15,7 @@ class UserConfig {
     [variable: VariableName]: boolean
   };
   public variableOctaves: VariableOctaves;
+  public activeOctaves: Set<number> = new Set<number>();
 
   constructor(
     variables: Array<VariableName>,
@@ -31,6 +32,14 @@ class UserConfig {
     this.unparsedVarTransforms = unparsedVarTransforms;
     this.playVariable = playVariable;
     this.variableOctaves = variableOctaves;
+    this.recomputeActiveOctaves();
+  }
+
+  public recomputeActiveOctaves(): void {
+    this.activeOctaves.clear()
+    for (let v of this.variables) {
+      this.activeOctaves.add(+this.variableOctaves[v]);
+    }
   }
 
   public deleteVariable(name: VariableName): boolean {
@@ -39,6 +48,7 @@ class UserConfig {
       return false;
     }
     this.variables.splice(idx, 1);
+    this.recomputeActiveOctaves();
     return true;
   }
 
@@ -54,6 +64,7 @@ class UserConfig {
     this.variables.push(name);
     this.variableOctaves[name] = 3;
     this.playVariable[name] = true;
+    this.recomputeActiveOctaves();
     return true;
   }
 
@@ -64,6 +75,16 @@ class UserConfig {
       }
     }
     return '';
+  }
+
+  public copy(): UserConfig {
+    return new UserConfig(
+      [...this.variables],
+      {...this.startState},
+      {...this.unparsedVarTransforms},
+      {...this.playVariable},
+      {...this.variableOctaves}
+    )
   }
 }
 

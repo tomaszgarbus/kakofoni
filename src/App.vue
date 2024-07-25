@@ -10,8 +10,9 @@ import type {
 import { expressionToVarTransform  } from './step_definition_parser'
 import { useToast } from "vue-toastification"
 import Piano from './Piano.vue'
-import { notes, octaves, colors } from './constants'
+import { notes, allOctaves, colors } from './constants'
 import { fibonacciUserConfig } from './predefined_configs.js'
+import type UserConfig from './user_config.js'
 
 /* STATE */
 
@@ -19,18 +20,18 @@ var newVar: string = "";
 
 var pianoRef: Ref = ref(null);
 
-var activeOctaves = reactive([1, 2, 3, 4, 5, 6])
-
 const userConfig = reactive(fibonacciUserConfig);
 
 type PlayState = {
   playing: Tone.Loop | null;
   history: History;
+  config: UserConfig | null;
 }
 
 var playState: PlayState = reactive({
   playing: null,
-  history: {states: []}
+  history: {states: []},
+  config: null,
 });
 
 /* LOGIC */
@@ -47,13 +48,19 @@ function nextStep(
 function stop() {
   playState.playing?.stop();
   playState.playing = null;
+  playState.config = null;
 }
 
 function play(
   startState: VariablesState,
   stepDefinition: StepDefinition,
   variablesToPlay: VariablesToPlay,
-  variableOctaves: VariableOctaves) {
+  variableOctaves: VariableOctaves,
+  userConfigCopy: UserConfig) {
+  // Reset play state history.
+  playState.history = {states: []};
+  playState.config = userConfigCopy;
+
   const synth = new Tone.PolySynth().toDestination();
   var state = startState;
 
@@ -98,7 +105,7 @@ Error: ${(e as Error).message}.`);
 
   // Validate octaves.
   for (let variable of userConfig.variables) {
-    if (!userConfig.variableOctaves[variable]) {
+    if (userConfig.variableOctaves[variable] === null) {
       useToast().error(`Select octave for variable ${variable}.`);
       return;
     }
@@ -106,7 +113,7 @@ Error: ${(e as Error).message}.`);
 
   // Validate initial values.
   for (let variable of userConfig.variables) {
-    if (!userConfig.startState[variable]) {
+    if (userConfig.startState[variable] === null) {
       useToast().error(`Select initial value for variable ${variable}.`);
       return;
     }
@@ -118,10 +125,11 @@ Error: ${(e as Error).message}.`);
       variablesToPlay.push(variable);
     }
   }
-  play(userConfig.startState,
+  play({ ...userConfig.startState },
     stepDefinition,
     variablesToPlay,
-    userConfig.variableOctaves
+    { ...userConfig.variableOctaves },
+    userConfig.copy()
   )
 }
 
@@ -186,6 +194,20 @@ function updateChart() {
 onMounted(() => {
   updateChart();
 })
+
+function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
+  var result = new Set<T>();
+  console.log(set1, set2)
+  for (let e of set1) {
+    result.add(e);
+  }
+  if (set2) {
+    for (let e of set2) {
+      result.add(e);
+    }
+  }
+  return result;
+}
 </script>
 
 <template>
@@ -278,10 +300,11 @@ onMounted(() => {
               <span class="variable-8va">8va:</span>
               <select name="{{variable}} 8va" id="variable-octave"
                   class="input" v-model="userConfig.variableOctaves[variable]"
+                  @change="userConfig.recomputeActiveOctaves()"
                   :disabled="!userConfig.playVariable[variable]">
                 <option
-                  v-for="octave in octaves"
-                  :value="octave">
+                  v-for="octave in allOctaves"
+                  :value="octave"> 
                   {{ octave }}
                 </option>
               </select>
@@ -301,7 +324,9 @@ onMounted(() => {
     <!-- Piano -->
     <Piano
       :ref="(el) => { pianoRef = el }"
-      :octaves="activeOctaves" />
+      :octaves="setUnion(
+        userConfig.activeOctaves,
+        playState.config?.activeOctaves)" />
   </div>
 
   <!--Visualizer-->
@@ -313,9 +338,7 @@ onMounted(() => {
     <ul>
       <li>Add config: BPM</li>
       <li>Add config: shuffle</li>
-      <li>Debug plot: play, add variable, pause, play</li>
       <li>Background - red and blue przerywane linie</li>
-      <li>Show only active octaves</li>
       <li>Choice of factory presets</li>
       <li>Play the second C an octave higher</li>
       <li>Loading and downloading presets</li>

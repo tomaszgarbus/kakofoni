@@ -1,28 +1,25 @@
 <script setup lang="ts">
-import { notes } from './constants'
-import { onMounted, reactive, ref, type Ref } from 'vue'
-import * as d3 from 'd3'
+import { ref, type Ref } from 'vue'
 import OneOctavePiano from './OneOctavePiano.vue'
 import type { ActiveNote } from './types';
+import { allOctaves } from './constants';
 
 /* CONFIG */
 
 const props = defineProps(['octaves']);
-const octaves: Array<number> = props.octaves;
 
 /* STATE */
 
 const octavePianoRefs: { [octave: number]: Ref } = {};
-for (let octave of octaves) {
+for (let octave of allOctaves) {
   octavePianoRefs[octave] = ref(null);
 }
-console.log(octavePianoRefs);
 
 /* LOGIC */
 
 function updatePianoKeys(activeNotes: Array<ActiveNote>): void {
   const activeNotesPerOctave: { [octave: number]: Array<ActiveNote> } = {};
-  for (let octave of octaves) {
+  for (let octave of props.octaves) {
     activeNotesPerOctave[octave] = [];
   }
   for (let note of activeNotes) {
@@ -33,10 +30,16 @@ function updatePianoKeys(activeNotes: Array<ActiveNote>): void {
       color: note.color
     });
   }
-  for (let octave of octaves) {
+  for (let octave of props.octaves) {
     octavePianoRefs[octave].value.updatePianoKeys(
       activeNotesPerOctave[octave]);
   }
+}
+
+function sortedOctaves(): Array<number> {
+  var result: Array<number> = Array.from(props.octaves);
+  result.sort();
+  return result;
 }
 
 defineExpose({
@@ -47,10 +50,14 @@ defineExpose({
 
 <template>
   <div class="block" id="piano-block">
-    <span v-for="octave in octaves" style="height: fit-content">
+    <span v-for="octave in sortedOctaves()" style="height: fit-content">
       <OneOctavePiano
         :octave="octave"
-        :ref="(el) => { octavePianoRefs[octave].value = el}" />
+        :ref="(el) => {
+          if (el != null) {
+            octavePianoRefs[octave].value = el;
+          }
+        }" />
     </span>
   </div>
 </template>
