@@ -62,11 +62,6 @@ h3 {
   margin: 0px;
 }
 
-#advanced-settings {
-  margin-top: 10px;
-  margin-left: 10px;
-}
-
 .section-hint {
   color: var(--grey-600);
   font-family: 'Solway';
@@ -152,7 +147,7 @@ h3 {
   cursor: pointer;
 }
 
-.variable-play-on-or-off {
+.toggle {
   height: 30px;
   cursor: pointer;
 }
@@ -208,4 +203,20 @@ h3 {
   border-radius: 50%;
   background: var(--primary-color);
   cursor: pointer;
+}
+
+#more-settings-collapsible {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-left: 2px;
+  padding-left: 10px;
+  padding-top: 10px;
+  border-left: dotted var(--secondary-color);
+}
+
+.spread-horizontally {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }

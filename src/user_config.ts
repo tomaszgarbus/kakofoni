@@ -17,6 +17,7 @@ class UserConfig {
   public variableOctaves: VariableOctaves;
   public activeOctaves: Set<number> = new Set<number>();
   public bpm: number;
+  public downloadMidi: boolean;
 
   constructor(
     variables: Array<VariableName>,
@@ -28,7 +29,8 @@ class UserConfig {
       [variable: VariableName]: boolean
     },
     variableOctaves: VariableOctaves,
-    bpm: number = 180) {
+    bpm: number = 180,
+    downloadMidi: boolean = false) {
     this.variables = variables;
     this.startState = startState;
     this.unparsedVarTransforms = unparsedVarTransforms;
@@ -36,6 +38,7 @@ class UserConfig {
     this.variableOctaves = variableOctaves;
     this.recomputeActiveOctaves();
     this.bpm = bpm;
+    this.downloadMidi = downloadMidi;
   }
 
   public recomputeActiveOctaves(): void {
@@ -87,7 +90,8 @@ class UserConfig {
       {...this.unparsedVarTransforms},
       {...this.playVariable},
       {...this.variableOctaves},
-      this.bpm
+      this.bpm,
+      this.downloadMidi,
     )
   }
 }

@@ -36,7 +36,8 @@ type PlayState = {
   playing: Tone.Loop | null;
   history: History;
   config: UserConfig | null;
-  midiTrack: Track;
+  midiTrack: Track | null;
+  downloadMidi: boolean;
 }
 
 var playState: PlayState = reactive({
@@ -44,6 +45,7 @@ var playState: PlayState = reactive({
   history: {states: []},
   config: null,
   midiTrack: new MidiWriter.Track(),
+  downloadMidi: false,
 });
 
 /* LOGIC */
@@ -69,13 +71,16 @@ function downloadFile(uri: string) {
 }
 
 function stop() {
+  const write = new MidiWriter.Writer(playState.midiTrack);
+  if (playState.downloadMidi) {
+    downloadFile(write.dataUri());
+  }
+
   playState.playing?.stop();
   playState.playing = null;
   playState.config = null;
-
-  const write = new MidiWriter.Writer(playState.midiTrack);
-  console.log(write.dataUri());
-  downloadFile(write.dataUri());
+  playState.midiTrack = null;
+  playState.downloadMidi = false;
 }
 
 function play(
@@ -84,11 +89,13 @@ function play(
   variablesToPlay: VariablesToPlay,
   variableOctaves: VariableOctaves,
   bpm: number,
+  downloadMidi: boolean,
   userConfigCopy: UserConfig) {
   // Reset play state history.
   playState.history = {states: []};
   playState.config = userConfigCopy;
   playState.midiTrack = new MidiWriter.Track();
+  playState.downloadMidi = downloadMidi;
 
   const synth = new Tone.PolySynth().toDestination();
   var state = startState;
@@ -110,7 +117,7 @@ function play(
       pitch: midiNotes,
       duration: '8n'
     });
-    playState.midiTrack.addEvent(midiNoteEvent);
+    playState.midiTrack?.addEvent(midiNoteEvent);
     pianoRef.value.updatePianoKeys(newActiveNotes);
     playState.history.states.push(state);
     updateChart();
@@ -166,6 +173,7 @@ Error: ${(e as Error).message}.`);
     variablesToPlay,
     { ...userConfig.variableOctaves },
     userConfig.bpm,
+    userConfig.downloadMidi,
     userConfig.copy()
   )
 }
@@ -327,11 +335,11 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
                 {{ variable }}
               </span>
               <img src="@/assets/icons/on.svg"
-                class="variable-play-on-or-off"
+                class="toggle"
                 @click="userConfig.playVariable[variable] = false"
                 v-if="userConfig.playVariable[variable]" />
               <img src="@/assets/icons/off.svg"
-                class="variable-play-on-or-off"
+                class="toggle"
                 @click="userConfig.playVariable[variable] = true"
                 v-if="!userConfig.playVariable[variable]" />
               <span class="variable-8va">8va:</span>
@@ -350,7 +358,7 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
         </div>
       </div>
       <div id="more-settings">
-        <h2>
+        <h2 class="spread-horizontally">
           More settings?
           <img src="@/assets/icons/expand.svg"
             @click="uiState.expandAdvancedSettings = true"
@@ -362,7 +370,7 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
             class="clickable" />
         </h2>
         <div
-          id="advanced-settings"
+          id="more-settings-collapsible"
           v-if="uiState.expandAdvancedSettings">
           <div id="bpm">
             <h3>BPM: {{ userConfig.bpm }}</h3>
@@ -370,6 +378,23 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
               <input type="range" min="120" max="300" value="180"
                 class="slider" v-model="userConfig.bpm">
             </div>
+          </div>
+          <div id="download-midi">
+            <div class="spread-horizontally">
+              <h3 style="display: inline;">Download MIDI?</h3>
+              <img src="@/assets/icons/on.svg"
+                  class="toggle"
+                  @click="userConfig.downloadMidi = false"
+                  v-if="userConfig.downloadMidi" />
+              <img src="@/assets/icons/off.svg"
+                class="toggle"
+                @click="userConfig.downloadMidi = true"
+                v-if="!userConfig.downloadMidi" />
+            </div>
+              <p class="section-hint">
+                If enabled, all notes played so far will be
+                exported to MIDI when you pause the track.
+              </p>
           </div>
         </div>
       </div>
@@ -407,7 +432,6 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
         give a choice from preprogrammed rhythms (only 1s, only 0s,
         fibonacci word, thue morse word etc.)</li>
       <li>Split up the code.</li>
-      <li>Generate MIDI</li>
     </ul>
   </div>
   <br>
