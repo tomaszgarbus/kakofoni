@@ -22,6 +22,14 @@ var pianoRef: Ref = ref(null);
 
 const userConfig = reactive(fibonacciUserConfig);
 
+type UIState = {
+  expandAdvancedSettings: boolean;
+}
+
+var uiState: UIState = reactive({
+  expandAdvancedSettings: false
+})
+
 type PlayState = {
   playing: Tone.Loop | null;
   history: History;
@@ -56,6 +64,7 @@ function play(
   stepDefinition: StepDefinition,
   variablesToPlay: VariablesToPlay,
   variableOctaves: VariableOctaves,
+  bpm: number,
   userConfigCopy: UserConfig) {
   // Reset play state history.
   playState.history = {states: []};
@@ -82,7 +91,7 @@ function play(
     state = nextStep(state, stepDefinition);
   }, "8n").start(0);
   // Start
-  Tone.Transport.bpm.rampTo(160);
+  Tone.Transport.bpm.rampTo(bpm);
   Tone.Transport.start()
 }
 
@@ -129,6 +138,7 @@ Error: ${(e as Error).message}.`);
     stepDefinition,
     variablesToPlay,
     { ...userConfig.variableOctaves },
+    userConfig.bpm,
     userConfig.copy()
   )
 }
@@ -312,12 +322,36 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
           </span>
         </div>
       </div>
+      <div id="more-settings">
+        <h2>
+          More settings?
+          <img src="@/assets/icons/expand.svg"
+            @click="uiState.expandAdvancedSettings = true"
+            v-if="!uiState.expandAdvancedSettings"
+            class="clickable" />
+          <img src="@/assets/icons/collapse.svg"
+            @click="uiState.expandAdvancedSettings = false"
+            v-if="uiState.expandAdvancedSettings"
+            class="clickable" />
+        </h2>
+        <div
+          id="advanced-settings"
+          v-if="uiState.expandAdvancedSettings">
+          <div id="bpm">
+            <h3>BPM: {{ userConfig.bpm }}</h3>
+            <div class="slidecontainer">
+              <input type="range" min="120" max="300" value="180"
+                class="slider" v-model="userConfig.bpm">
+            </div>
+          </div>
+        </div>
+      </div>
       <div id="ready">
         <h2 style="display: inline">Ready?</h2>
         <img @click="validateAndPlay" src="@/assets/icons/play.svg"
-          style="cursor: pointer" v-if="playState.playing == null" />
+          class="clickable" v-if="playState.playing == null" />
         <img @click="stop" src="@/assets/icons/stop.svg"
-          style="cursor: pointer" v-if="playState.playing != null" />
+        class="clickable" v-if="playState.playing != null" />
       </div>
     </div>
 
@@ -336,7 +370,6 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
   <div>
     TODO:
     <ul>
-      <li>Add config: BPM</li>
       <li>Add config: shuffle</li>
       <li>Background - red and blue przerywane linie</li>
       <li>Choice of factory presets</li>
@@ -347,6 +380,7 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
         give a choice from preprogrammed rhythms (only 1s, only 0s,
         fibonacci word, thue morse word etc.)</li>
       <li>Split up the code.</li>
+      <li>Generate MIDI</li>
     </ul>
   </div>
   <br>
