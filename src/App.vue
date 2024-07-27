@@ -13,6 +13,8 @@ import Piano from './Piano.vue'
 import { notes, allOctaves, colors } from './constants'
 import { fibonacciUserConfig } from './predefined_configs.js'
 import type UserConfig from './user_config.js'
+import MidiWriter from 'midi-writer-js'
+import type { Track } from 'midi-writer-js/build/types/chunks/track.js'
 
 /* STATE */
 
@@ -34,12 +36,14 @@ type PlayState = {
   playing: Tone.Loop | null;
   history: History;
   config: UserConfig | null;
+  midiTrack: Track;
 }
 
 var playState: PlayState = reactive({
   playing: null,
   history: {states: []},
   config: null,
+  midiTrack: new MidiWriter.Track(),
 });
 
 /* LOGIC */
@@ -53,10 +57,25 @@ function nextStep(
   return newState;
 }
 
+// https://stackoverflow.com/questions/36903527/how-do-you-automatically-download-a-file-in-javascript
+function downloadFile(uri: string) {
+  const element = document.createElement('a');
+  element.setAttribute('href', 'Download Btn');
+  element.setAttribute('download', 'export.mid');
+  element.style.display = 'none';
+  document.body.appendChild(element);
+  element.click();
+  document.body.removeChild(element);
+}
+
 function stop() {
   playState.playing?.stop();
   playState.playing = null;
   playState.config = null;
+
+  const write = new MidiWriter.Writer(playState.midiTrack);
+  console.log(write.dataUri());
+  downloadFile(write.dataUri());
 }
 
 function play(
@@ -69,21 +88,29 @@ function play(
   // Reset play state history.
   playState.history = {states: []};
   playState.config = userConfigCopy;
+  playState.midiTrack = new MidiWriter.Track();
 
   const synth = new Tone.PolySynth().toDestination();
   var state = startState;
 
   playState.playing = new Tone.Loop(time => {
     const newActiveNotes: Array<ActiveNote> = [];
+    const midiNotes: Array<string> = [];
     for (let variable of variablesToPlay) {
       const value = state[variable];
       var noteToPlay = notes[value] + variableOctaves[variable];
+      midiNotes.push(noteToPlay);
       synth.triggerAttackRelease(noteToPlay, "8n", time);
       newActiveNotes.push({
         note: noteToPlay,
         color: userConfig.getColorForVariable(variable)
       });
     }
+    const midiNoteEvent = new MidiWriter.NoteEvent({
+      pitch: midiNotes,
+      duration: '8n'
+    });
+    playState.midiTrack.addEvent(midiNoteEvent);
     pianoRef.value.updatePianoKeys(newActiveNotes);
     playState.history.states.push(state);
     updateChart();
