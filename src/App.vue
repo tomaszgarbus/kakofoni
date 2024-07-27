@@ -60,7 +60,7 @@ function nextStep(
 // https://stackoverflow.com/questions/36903527/how-do-you-automatically-download-a-file-in-javascript
 function downloadFile(uri: string) {
   const element = document.createElement('a');
-  element.setAttribute('href', 'Download Btn');
+  element.setAttribute('href', uri);
   element.setAttribute('download', 'export.mid');
   element.style.display = 'none';
   document.body.appendChild(element);
