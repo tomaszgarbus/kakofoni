@@ -22,7 +22,7 @@ var newVar: string = "";
 
 var pianoRef: Ref = ref(null);
 
-const userConfig = reactive(fibonacciUserConfig);
+const userConfig = reactive(fibonacciUserConfig.copy());
 
 type UIState = {
   expandAdvancedSettings: boolean;
@@ -97,7 +97,9 @@ function play(
   playState.midiTrack = new MidiWriter.Track();
   playState.downloadMidi = downloadMidi;
 
-  const synth = new Tone.PolySynth().toDestination();
+  const synth = new Tone.PolySynth({
+    maxPolyphony: 80
+  }).toDestination();
   var state = startState;
 
   playState.playing = new Tone.Loop(time => {
@@ -121,6 +123,7 @@ function play(
     pianoRef.value.updatePianoKeys(newActiveNotes);
     playState.history.states.push(state);
     updateChart();
+    console.log(synth.activeVoices);
 
     state = nextStep(state, stepDefinition);
   }, "8n").start(0);
@@ -156,7 +159,8 @@ Error: ${(e as Error).message}.`);
 
   // Validate initial values.
   for (let variable of userConfig.variables) {
-    if (userConfig.startState[variable] === null) {
+    console.log(userConfig.startState[variable])
+    if (userConfig.startState[variable] === undefined) {
       useToast().error(`Select initial value for variable ${variable}.`);
       return;
     }
@@ -267,7 +271,7 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
         <h2>Variables and initial values</h2>
         <p class="section-hint">
           First, list all variables you want to use and set their initial
-          (step 0) values. You can add up to 10 variables.
+          (step 0) values. You can add up to 5 variables.
         </p>
         <div class="variables-column">
           <span v-for="variable in userConfig.variables">
@@ -290,7 +294,7 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
                 @click="userConfig.deleteVariable(variable)"/>
             </div>
           </span>
-          <div class="variable-entry">
+          <div class="variable-entry" v-if="userConfig.variables.length < 5">
             <span class="variable-entry-name">
               Name:
             </span>
@@ -422,6 +426,7 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
   <div>
     TODO:
     <ul>
+      <li>Fix max polyphony limit</li>
       <li>Add config: shuffle</li>
       <li>Background - red and blue przerywane linie</li>
       <li>Choice of factory presets</li>
