@@ -15,6 +15,7 @@ import { fibonacciUserConfig } from './predefined_configs.js'
 import type UserConfig from './user_config.js'
 import MidiWriter from 'midi-writer-js'
 import type { Track } from 'midi-writer-js/build/types/chunks/track.js'
+import PresetLoader from './PresetLoader.vue'
 
 /* STATE */
 
@@ -22,7 +23,13 @@ var newVar: string = "";
 
 var pianoRef: Ref = ref(null);
 
-const userConfig = reactive(fibonacciUserConfig.copy());
+type ConfigWrapper = {
+  config: UserConfig,
+}
+
+const configWrapper: ConfigWrapper = reactive({
+  config: fibonacciUserConfig.copy()
+});
 
 type UIState = {
   expandAdvancedSettings: boolean;
@@ -112,7 +119,7 @@ function play(
       synth.triggerAttackRelease(noteToPlay, "8n", time);
       newActiveNotes.push({
         note: noteToPlay,
-        color: userConfig.getColorForVariable(variable)
+        color: configWrapper.config.getColorForVariable(variable)
       });
     }
     const midiNoteEvent = new MidiWriter.NoteEvent({
@@ -136,12 +143,12 @@ function validateAndPlay(): void {
   const variablesToPlay: VariablesToPlay = [];
   const stepDefinition: StepDefinition = {};
   // Validate transforms.
-  for (let variable of userConfig.variables) {
+  for (let variable of configWrapper.config.variables) {
     try {
       stepDefinition[variable] =
         expressionToVarTransform(
-          userConfig.unparsedVarTransforms[variable],
-          userConfig.variables);
+          configWrapper.config.unparsedVarTransforms[variable],
+          configWrapper.config.variables);
     } catch (e) {
       useToast().error(`Failed to parse transform for variable ${variable}.
 Error: ${(e as Error).message}.`);
@@ -150,35 +157,35 @@ Error: ${(e as Error).message}.`);
   }
 
   // Validate octaves.
-  for (let variable of userConfig.variables) {
-    if (userConfig.variableOctaves[variable] === null) {
+  for (let variable of configWrapper.config.variables) {
+    if (configWrapper.config.variableOctaves[variable] === null) {
       useToast().error(`Select octave for variable ${variable}.`);
       return;
     }
   }
 
   // Validate initial values.
-  for (let variable of userConfig.variables) {
-    console.log(userConfig.startState[variable])
-    if (userConfig.startState[variable] === undefined) {
+  for (let variable of configWrapper.config.variables) {
+    console.log(configWrapper.config.startState[variable])
+    if (configWrapper.config.startState[variable] === undefined) {
       useToast().error(`Select initial value for variable ${variable}.`);
       return;
     }
   }
 
   // Play.
-  for (let variable of userConfig.variables) {
-    if (userConfig.playVariable[variable]) {
+  for (let variable of configWrapper.config.variables) {
+    if (configWrapper.config.playVariable[variable]) {
       variablesToPlay.push(variable);
     }
   }
-  play({ ...userConfig.startState },
+  play({ ...configWrapper.config.startState },
     stepDefinition,
     variablesToPlay,
-    { ...userConfig.variableOctaves },
-    userConfig.bpm,
-    userConfig.downloadMidi,
-    userConfig.copy()
+    { ...configWrapper.config.variableOctaves },
+    configWrapper.config.bpm,
+    configWrapper.config.downloadMidi,
+    configWrapper.config.copy()
   )
 }
 
@@ -208,7 +215,7 @@ function updateChart() {
       .range([0, height]);
   
   const lines: { [varName: VariableName]: d3.Line<VariablesState> } = {};
-  for (let variable of userConfig.variables) {
+  for (let variable of configWrapper.config.variables) {
     const line = d3
       .line<VariablesState>()
       .x(function (_, index: number, __) {
@@ -225,14 +232,14 @@ function updateChart() {
   svg.append("g")
     .call(d3.axisLeft(y));
 
-  var groups = d3.group(userConfig.variables);
+  var groups = d3.group(configWrapper.config.variables);
 
   svg.selectAll(".line")
     .data(groups)
     .join("path")
     .attr("fill", "none")
     .attr("stroke", function (g: VariableName) {
-      return userConfig.getColorForVariable(g);
+      return configWrapper.config.getColorForVariable(g);
     })
     .attr("stroke-width", 1.5)
     .attr('d', function (g: VariableName) {
@@ -267,6 +274,8 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
   <!-- Config -->
   <div id="main-frame">
     <div class="block" id="config-block">
+      <PresetLoader :onSelect=" 
+        (preset: UserConfig) => { configWrapper.config = preset }" />
       <div id="variables-and-init-values">
         <h2>Variables and initial values</h2>
         <p class="section-hint">
@@ -274,14 +283,14 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
           (step 0) values. You can add up to 5 variables.
         </p>
         <div class="variables-column">
-          <span v-for="variable in userConfig.variables">
+          <span v-for="variable in configWrapper.config.variables">
             <div class="variable-entry">
               <span class="variable-entry-name">
                 {{ variable }}
               </span>
               <select name="Initial value" id="init-value"
                   class="input wide"
-                  v-model="userConfig.startState[variable]">
+                  v-model="configWrapper.config.startState[variable]">
                 <option
                   v-for="note in Array(notes.length).keys()"
                   :value="note"
@@ -291,16 +300,16 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
               </select>
               <img src="@/assets/icons/close.svg"
                 class="variable-add-or-del-img"
-                @click="userConfig.deleteVariable(variable)"/>
+                @click="configWrapper.config.deleteVariable(variable)"/>
             </div>
           </span>
-          <div class="variable-entry" v-if="userConfig.variables.length < 5">
+          <div class="variable-entry" v-if="configWrapper.config.variables.length < 5">
             <span class="variable-entry-name">
               Name:
             </span>
             <input type="text" class="input wide" v-model="newVar" />
             <img src="@/assets/icons/add.svg" class="variable-add-or-del-img"
-              @click="userConfig.addVariable(newVar)"/>
+              @click="configWrapper.config.addVariable(newVar)"/>
           </div>
         </div>
       </div>
@@ -316,13 +325,13 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
           {{ notes.length }}.
         </p>
         <div class="variables-column">
-          <span v-for="variable in userConfig.variables">
+          <span v-for="variable in configWrapper.config.variables">
             <div class="variable-entry">
               <span class="variable-entry-name">
                 {{ variable }}
               </span>
               <input type="text" class="input wide"
-                v-model="userConfig.unparsedVarTransforms[variable]" />
+                v-model="configWrapper.config.unparsedVarTransforms[variable]" />
             </div>
           </span>
         </div>
@@ -333,24 +342,24 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
           Select which variables you’d like to be played and in which octave.
         </p>
         <div class="variables-column">
-          <span v-for="variable in userConfig.variables">
+          <span v-for="variable in configWrapper.config.variables">
             <div class="variable-entry">
               <span class="variable-entry-name">
                 {{ variable }}
               </span>
               <img src="@/assets/icons/on.svg"
                 class="toggle"
-                @click="userConfig.playVariable[variable] = false"
-                v-if="userConfig.playVariable[variable]" />
+                @click="configWrapper.config.playVariable[variable] = false"
+                v-if="configWrapper.config.playVariable[variable]" />
               <img src="@/assets/icons/off.svg"
                 class="toggle"
-                @click="userConfig.playVariable[variable] = true"
-                v-if="!userConfig.playVariable[variable]" />
+                @click="configWrapper.config.playVariable[variable] = true"
+                v-if="!configWrapper.config.playVariable[variable]" />
               <span class="variable-8va">8va:</span>
               <select name="{{variable}} 8va" id="variable-octave"
-                  class="input" v-model="userConfig.variableOctaves[variable]"
-                  @change="userConfig.recomputeActiveOctaves()"
-                  :disabled="!userConfig.playVariable[variable]">
+                  class="input" v-model="configWrapper.config.variableOctaves[variable]"
+                  @change="configWrapper.config.recomputeActiveOctaves()"
+                  :disabled="!configWrapper.config.playVariable[variable]">
                 <option
                   v-for="octave in allOctaves"
                   :value="octave"> 
@@ -377,10 +386,10 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
           id="more-settings-collapsible"
           v-if="uiState.expandAdvancedSettings">
           <div id="bpm">
-            <h3>BPM: {{ userConfig.bpm }}</h3>
+            <h3>BPM: {{ configWrapper.config.bpm }}</h3>
             <div class="slidecontainer">
               <input type="range" min="120" max="300" value="180"
-                class="slider" v-model="userConfig.bpm">
+                class="slider" v-model="configWrapper.config.bpm">
             </div>
           </div>
           <div id="download-midi">
@@ -388,12 +397,12 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
               <h3 style="display: inline;">Download MIDI?</h3>
               <img src="@/assets/icons/on.svg"
                   class="toggle"
-                  @click="userConfig.downloadMidi = false"
-                  v-if="userConfig.downloadMidi" />
+                  @click="configWrapper.config.downloadMidi = false"
+                  v-if="configWrapper.config.downloadMidi" />
               <img src="@/assets/icons/off.svg"
                 class="toggle"
-                @click="userConfig.downloadMidi = true"
-                v-if="!userConfig.downloadMidi" />
+                @click="configWrapper.config.downloadMidi = true"
+                v-if="!configWrapper.config.downloadMidi" />
             </div>
               <p class="section-hint">
                 If enabled, all notes played so far will be
@@ -415,7 +424,7 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
     <Piano
       :ref="(el) => { pianoRef = el }"
       :octaves="setUnion(
-        userConfig.activeOctaves,
+        configWrapper.config.activeOctaves,
         playState.config?.activeOctaves)" />
   </div>
 
@@ -429,7 +438,7 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
       <li>Fix max polyphony limit</li>
       <li>Add config: shuffle</li>
       <li>Background - red and blue przerywane linie</li>
-      <li>Choice of factory presets</li>
+      <li>More factory presets</li>
       <li>Play the second C an octave higher</li>
       <li>Loading and downloading presets</li>
       <li>Better plot</li>

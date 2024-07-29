@@ -3,7 +3,7 @@ import { notes } from './constants'
 import { ref, type Ref } from 'vue'
 import type { ActiveNote } from './types';
 
-const props = defineProps(['octave'])
+const props = defineProps(['octave']);
 var svgRef: Ref = ref(null);
 
 function updatePianoKeys(activeNotes: Array<ActiveNote>): void {
