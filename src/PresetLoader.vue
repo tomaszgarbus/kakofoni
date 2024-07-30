@@ -30,7 +30,7 @@ const onSelect: (preset: UserConfig) => (void) =
       <span v-for="[name, preset] of Object.entries(predefinedConfigs)">
         <button
           class="preset-button"
-          @click="onSelect(preset.copy())">
+          @click="onSelect(preset.copy()); uiState.showDropdown = false;">
           {{ name }}
         </button>
       </span>
