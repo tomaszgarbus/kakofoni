@@ -446,6 +446,7 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
         give a choice from preprogrammed rhythms (only 1s, only 0s,
         fibonacci word, thue morse word etc.)</li>
       <li>Split up the code.</li>
+      <li>Debug: keep only 1 variable with step def "f0+1"</li>
     </ul>
   </div>
   <br>
