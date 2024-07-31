@@ -130,7 +130,6 @@ function play(
     pianoRef.value.updatePianoKeys(newActiveNotes);
     playState.history.states.push(state);
     updateChart();
-    console.log(synth.activeVoices);
 
     state = nextStep(state, stepDefinition);
   }, "8n").start(0);
@@ -166,7 +165,6 @@ Error: ${(e as Error).message}.`);
 
   // Validate initial values.
   for (let variable of configWrapper.config.variables) {
-    console.log(configWrapper.config.startState[variable])
     if (configWrapper.config.startState[variable] === undefined) {
       useToast().error(`Select initial value for variable ${variable}.`);
       return;
@@ -253,7 +251,6 @@ onMounted(() => {
 
 function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
   var result = new Set<T>();
-  console.log(set1, set2)
   for (let e of set1) {
     result.add(e);
   }

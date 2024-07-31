@@ -54,6 +54,10 @@ class UserConfig {
       return false;
     }
     this.variables.splice(idx, 1);
+    delete this.startState[name];
+    delete this.playVariable[name];
+    delete this.unparsedVarTransforms[name];
+    delete this.variableOctaves[name];
     this.recomputeActiveOctaves();
     return true;
   }
