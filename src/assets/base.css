@@ -90,6 +90,14 @@ h3 {
   width: fit-content;
 }
 
+#plot-wrapper {
+  background-color: white;
+  border-radius: 30px;
+  margin-top: 50px;
+  padding: 20px;
+  width: fit-content;
+}
+
 .variable-entry {
   align-items: center;
   background-color: white;
@@ -163,6 +171,8 @@ h3 {
   display: flex;
   flex-direction: row;
   gap: 20px;
+  margin: auto;
+  width: fit-content;
 }
 
 #logo-div {

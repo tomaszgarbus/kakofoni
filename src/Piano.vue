@@ -49,7 +49,7 @@ defineExpose({
 </script>
 
 <template>
-  <div class="block" id="piano-block">
+  <div id="piano-block">
     <span v-for="octave in sortedOctaves()" style="height: fit-content">
       <OneOctavePiano
         :octave="octave"

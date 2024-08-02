@@ -187,30 +187,39 @@ Error: ${(e as Error).message}.`);
   )
 }
 
+function lastN<T>(arr: Array<T>, n: number): Array<T> {
+  return arr.slice(-n);
+}
+
 function updateChart() {
   // Clear the graph first.
   d3.selectAll("#visualiser > *").remove();
 
-  const margin = {top: 10, right: 30, bottom: 30, left: 60};
-  const width = 800 - margin.left - margin.right;
-  const height = 500 - margin.top - margin.bottom;
+  const margin = {top: 10, right: 10, bottom: 40, left: 60};
+  const width = 600 - margin.left - margin.right;
+  const height = 400 - margin.top - margin.bottom;
   const svg = d3.select("#visualiser")
-  svg
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
 
+  const statesToPlot = lastN(playState.history.states, 100);
   const x = d3
     .scaleLinear()
-    .domain([0, playState.history.states.length])
+    .domain([0, statesToPlot.length])
     .range([0, width]);
   const y = d3
       .scaleLinear()
       .domain(
-        [0, notes.length]
+        [0, notes.length - 1]
       )
       .range([0, height]);
+  svg.append("g").call(
+    d3.axisLeft(y).tickFormat(
+      (_, index) => `${index} (${notes[index]})`
+    )
+  ).style("font", "14px times")
   
   const lines: { [varName: VariableName]: d3.Line<VariablesState> } = {};
   for (let variable of configWrapper.config.variables) {
@@ -227,8 +236,6 @@ function updateChart() {
   svg.append("g")
     .attr("transform", `translate(0, ${height})`)
     .call(d3.axisBottom(x).ticks(5));
-  svg.append("g")
-    .call(d3.axisLeft(y));
 
   var groups = d3.group(configWrapper.config.variables);
 
@@ -241,7 +248,7 @@ function updateChart() {
     })
     .attr("stroke-width", 1.5)
     .attr('d', function (g: VariableName) {
-      return lines[g](playState.history.states);
+      return lines[g](statesToPlot);
     });
 }
 
@@ -417,23 +424,28 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
       </div>
     </div>
 
-    <!-- Piano -->
-    <Piano
-      :ref="(el) => { pianoRef = el }"
-      :octaves="setUnion(
-        configWrapper.config.activeOctaves,
-        playState.config?.activeOctaves)" />
+    <div class="block">
+      <!-- Piano -->
+      <Piano
+        :ref="(el) => { pianoRef = el }"
+        :octaves="setUnion(
+          configWrapper.config.activeOctaves,
+          playState.config?.activeOctaves)" />
+      
+      <!--Visualizer-->
+      <div id="plot-wrapper">
+        <svg id="visualiser"></svg>
+      </div>
+    </div>
   </div>
 
-  <!--Visualizer-->
-  <svg id="visualiser"></svg>
 
   <!--TODO-->
   <div>
     TODO:
     <ul>
       <li>Fix max polyphony limit</li>
-      <li>Add config: shuffle</li>
+      <li>Generating MIDI takes too long</li>
       <li>Background - red and blue przerywane linie</li>
       <li>More factory presets</li>
       <li>Play the second C an octave higher</li>
@@ -443,7 +455,6 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
         give a choice from preprogrammed rhythms (only 1s, only 0s,
         fibonacci word, thue morse word etc.)</li>
       <li>Split up the code.</li>
-      <li>Debug: keep only 1 variable with step def "f0+1"</li>
     </ul>
   </div>
   <br>
