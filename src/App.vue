@@ -442,7 +442,7 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
 
 
   <!--TODO-->
-  <div>
+  <div hidden=true>
     TODO:
     <ul>
       <li>Fix max polyphony limit</li>
@@ -451,7 +451,6 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
       <li>More factory presets</li>
       <li>Play the second C an octave higher</li>
       <li>Loading and downloading presets</li>
-      <li>Better plot</li>
       <li>For each variable, instead of "play/no play",
         give a choice from preprogrammed rhythms (only 1s, only 0s,
         fibonacci word, thue morse word etc.)</li>

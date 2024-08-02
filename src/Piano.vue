@@ -3,6 +3,7 @@ import { ref, type Ref } from 'vue'
 import OneOctavePiano from './OneOctavePiano.vue'
 import type { ActiveNote } from './types';
 import { allOctaves } from './constants';
+import PianoOctaveSeparator from './PianoOctaveSeparator.vue';
 
 /* CONFIG */
 
@@ -42,6 +43,22 @@ function sortedOctaves(): Array<number> {
   return result;
 }
 
+function sortedOctavesWithGaps(): Array<number | null> {
+  var sorted = sortedOctaves();
+  var withGaps: Array<number | null> = [];
+  for (let idx in sorted) {
+    const octave = sorted[idx];
+    if (withGaps.length > 0) {
+      const last = withGaps[withGaps.length - 1];
+      if (last != null && octave - last > 1) {
+        withGaps.push(null);
+      }
+    }
+    withGaps.push(octave);
+  }
+  return withGaps;
+}
+
 defineExpose({
   updatePianoKeys,
 })
@@ -50,14 +67,19 @@ defineExpose({
 
 <template>
   <div id="piano-block">
-    <span v-for="octave in sortedOctaves()" style="height: fit-content">
-      <OneOctavePiano
-        :octave="octave"
-        :ref="(el) => {
-          if (el != null) {
-            octavePianoRefs[octave].value = el;
-          }
-        }" />
+    <span v-for="octave in sortedOctavesWithGaps()" style="height: fit-content">
+      <span v-if="octave">
+        <OneOctavePiano
+          :octave="octave"
+          :ref="(el) => {
+            if (el != null) {
+              octavePianoRefs[octave].value = el;
+            }
+          }" />  
+      </span>
+      <span v-if="!octave">
+        <PianoOctaveSeparator />
+      </span>
     </span>
   </div>
 </template>
