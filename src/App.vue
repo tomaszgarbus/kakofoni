@@ -80,6 +80,7 @@ function downloadFile(uri: string) {
 function stop() {
   const write = new MidiWriter.Writer(playState.midiTrack);
   if (playState.downloadMidi) {
+    useToast().info('Exporting MIDI download. Check your downloads folder.')
     downloadFile(write.dataUri());
   }
 
