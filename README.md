@@ -1,6 +1,6 @@
-# kakofoni
+# Try Kakofonix here:
 
-This template should help get you started developing with Vue 3 in Vite.
+https://tomaszgarbus.github.io/kakofoni/
 
 ## Recommended IDE Setup
 
