@@ -230,3 +230,10 @@ h3 {
   flex-direction: row;
   justify-content: space-between;
 }
+
+#edit-blocker {
+  height: 100%;
+  position: absolute;
+  width: 100%;
+  z-index: 1;
+}

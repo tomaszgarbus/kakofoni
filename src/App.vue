@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import * as Tone from 'tone'
 import * as d3 from 'd3'
-import { onMounted, reactive, ref, type Ref } from 'vue'
+import { onMounted, reactive, ref, useAttrs, type Ref } from 'vue'
 import type {
   History, VariableName, VariablesState,
   VariableOctaves, VariablesToPlay, StepDefinition,
@@ -279,143 +279,150 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
   <!-- Config -->
   <div id="main-frame">
     <div class="block" id="config-block">
-      <PresetLoader :onSelect=" 
-        (preset: UserConfig) => { configWrapper.config = preset }" />
-      <div id="variables-and-init-values">
-        <h2>Variables and initial values</h2>
-        <p class="section-hint">
-          First, list all variables you want to use and set their initial
-          (step 0) values. You can add up to 5 variables.
-        </p>
-        <div class="variables-column">
-          <span v-for="variable in configWrapper.config.variables">
-            <div class="variable-entry">
-              <span class="variable-entry-name">
-                {{ variable }}
-              </span>
-              <select name="Initial value" id="init-value"
-                  class="input wide"
-                  v-model="configWrapper.config.startState[variable]">
-                <option
-                  v-for="note in Array(notes.length).keys()"
-                  :value="note"
-                  >
-                  {{ note }} ({{ notes[note] }})
-                </option>
-              </select>
-              <img src="@/assets/icons/close.svg"
-                class="variable-add-or-del-img"
-                @click="configWrapper.config.deleteVariable(variable)"/>
-            </div>
-          </span>
-          <div class="variable-entry" v-if="configWrapper.config.variables.length < 5">
-            <span class="variable-entry-name">
-              Name:
+      <span style="position: relative">
+        <span
+          id="edit-blocker"
+          :hidden="!playState.playing"
+          @click="useToast().info('Pause playback before updating the config.')">
+        </span>
+        <PresetLoader :onSelect=" 
+          (preset: UserConfig) => { configWrapper.config = preset }" />
+        <div id="variables-and-init-values">
+          <h2>Variables and initial values</h2>
+          <p class="section-hint">
+            First, list all variables you want to use and set their initial
+            (step 0) values. You can add up to 5 variables.
+          </p>
+          <div class="variables-column">
+            <span v-for="variable in configWrapper.config.variables">
+              <div class="variable-entry">
+                <span class="variable-entry-name">
+                  {{ variable }}
+                </span>
+                <select name="Initial value" id="init-value"
+                    class="input wide"
+                    v-model="configWrapper.config.startState[variable]">
+                  <option
+                    v-for="note in Array(notes.length).keys()"
+                    :value="note"
+                    >
+                    {{ note }} ({{ notes[note] }})
+                  </option>
+                </select>
+                <img src="@/assets/icons/close.svg"
+                  class="variable-add-or-del-img"
+                  @click="configWrapper.config.deleteVariable(variable)"/>
+              </div>
             </span>
-            <input type="text" class="input wide" v-model="newVar" />
-            <img src="@/assets/icons/add.svg" class="variable-add-or-del-img"
-              @click="configWrapper.config.addVariable(newVar)"/>
+            <div class="variable-entry" v-if="configWrapper.config.variables.length < 5">
+              <span class="variable-entry-name">
+                Name:
+              </span>
+              <input type="text" class="input wide" v-model="newVar" />
+              <img src="@/assets/icons/add.svg" class="variable-add-or-del-img"
+                @click="configWrapper.config.addVariable(newVar)"/>
+            </div>
           </div>
         </div>
-      </div>
-      <div id="step-transform">
-        <h2>Step transform</h2>
-        <p class="section-hint">
-          Now define the step transformation formulas. You can use variable
-          names (evaluated at step n-1), numerical constants, parentheses and
-          operations + and *.
-        </p>
-        <p class="section-hint">
-          All transforms will be applied in modular arithmetic modulo
-          {{ notes.length }}.
-        </p>
-        <div class="variables-column">
-          <span v-for="variable in configWrapper.config.variables">
-            <div class="variable-entry">
-              <span class="variable-entry-name">
-                {{ variable }}
-              </span>
-              <input type="text" class="input wide"
-                v-model="configWrapper.config.unparsedVarTransforms[variable]" />
-            </div>
-          </span>
-        </div>
-      </div>
-      <div id="what-do-you-wanna-hear">
-        <h2>What do you wanna hear?</h2>
-        <p class="section-hint">
-          Select which variables you’d like to be played and in which octave.
-        </p>
-        <div class="variables-column">
-          <span v-for="variable in configWrapper.config.variables">
-            <div class="variable-entry">
-              <span class="variable-entry-name">
-                {{ variable }}
-              </span>
-              <img src="@/assets/icons/on.svg"
-                class="toggle"
-                @click="configWrapper.config.playVariable[variable] = false"
-                v-if="configWrapper.config.playVariable[variable]" />
-              <img src="@/assets/icons/off.svg"
-                class="toggle"
-                @click="configWrapper.config.playVariable[variable] = true"
-                v-if="!configWrapper.config.playVariable[variable]" />
-              <span class="variable-8va">8va:</span>
-              <select name="{{variable}} 8va" id="variable-octave"
-                  class="input" v-model="configWrapper.config.variableOctaves[variable]"
-                  @change="configWrapper.config.recomputeActiveOctaves()"
-                  :disabled="!configWrapper.config.playVariable[variable]">
-                <option
-                  v-for="octave in allOctaves"
-                  :value="octave"> 
-                  {{ octave }}
-                </option>
-              </select>
-            </div>
-          </span>
-        </div>
-      </div>
-      <div id="more-settings">
-        <h2 class="spread-horizontally">
-          More settings?
-          <img src="@/assets/icons/expand.svg"
-            @click="uiState.expandAdvancedSettings = true"
-            v-if="!uiState.expandAdvancedSettings"
-            class="clickable" />
-          <img src="@/assets/icons/collapse.svg"
-            @click="uiState.expandAdvancedSettings = false"
-            v-if="uiState.expandAdvancedSettings"
-            class="clickable" />
-        </h2>
-        <div
-          id="more-settings-collapsible"
-          v-if="uiState.expandAdvancedSettings">
-          <div id="bpm">
-            <h3>BPM: {{ configWrapper.config.bpm }}</h3>
-            <div class="slidecontainer">
-              <input type="range" min="120" max="300" value="180"
-                class="slider" v-model="configWrapper.config.bpm">
-            </div>
+        <div id="step-transform">
+          <h2>Step transform</h2>
+          <p class="section-hint">
+            Now define the step transformation formulas. You can use variable
+            names (evaluated at step n-1), numerical constants, parentheses and
+            operations + and *.
+          </p>
+          <p class="section-hint">
+            All transforms will be applied in modular arithmetic modulo
+            {{ notes.length }}.
+          </p>
+          <div class="variables-column">
+            <span v-for="variable in configWrapper.config.variables">
+              <div class="variable-entry">
+                <span class="variable-entry-name">
+                  {{ variable }}
+                </span>
+                <input type="text" class="input wide"
+                  v-model="configWrapper.config.unparsedVarTransforms[variable]" />
+              </div>
+            </span>
           </div>
-          <div id="download-midi">
-            <div class="spread-horizontally">
-              <h3 style="display: inline;">Download MIDI?</h3>
-              <img src="@/assets/icons/on.svg"
+        </div>
+        <div id="what-do-you-wanna-hear">
+          <h2>What do you wanna hear?</h2>
+          <p class="section-hint">
+            Select which variables you’d like to be played and in which octave.
+          </p>
+          <div class="variables-column">
+            <span v-for="variable in configWrapper.config.variables">
+              <div class="variable-entry">
+                <span class="variable-entry-name">
+                  {{ variable }}
+                </span>
+                <img src="@/assets/icons/on.svg"
                   class="toggle"
-                  @click="configWrapper.config.downloadMidi = false"
-                  v-if="configWrapper.config.downloadMidi" />
-              <img src="@/assets/icons/off.svg"
-                class="toggle"
-                @click="configWrapper.config.downloadMidi = true"
-                v-if="!configWrapper.config.downloadMidi" />
-            </div>
-              <p class="section-hint">
-                If enabled, all notes played so far will be
-                exported to MIDI when you pause the track.
-              </p>
+                  @click="configWrapper.config.playVariable[variable] = false"
+                  v-if="configWrapper.config.playVariable[variable]" />
+                <img src="@/assets/icons/off.svg"
+                  class="toggle"
+                  @click="configWrapper.config.playVariable[variable] = true"
+                  v-if="!configWrapper.config.playVariable[variable]" />
+                <span class="variable-8va">8va:</span>
+                <select name="{{variable}} 8va" id="variable-octave"
+                    class="input" v-model="configWrapper.config.variableOctaves[variable]"
+                    @change="configWrapper.config.recomputeActiveOctaves()"
+                    :disabled="!configWrapper.config.playVariable[variable]">
+                  <option
+                    v-for="octave in allOctaves"
+                    :value="octave"> 
+                    {{ octave }}
+                  </option>
+                </select>
+              </div>
+            </span>
           </div>
         </div>
-      </div>
+        <div id="more-settings">
+          <h2 class="spread-horizontally">
+            More settings?
+            <img src="@/assets/icons/expand.svg"
+              @click="uiState.expandAdvancedSettings = true"
+              v-if="!uiState.expandAdvancedSettings"
+              class="clickable" />
+            <img src="@/assets/icons/collapse.svg"
+              @click="uiState.expandAdvancedSettings = false"
+              v-if="uiState.expandAdvancedSettings"
+              class="clickable" />
+          </h2>
+          <div
+            id="more-settings-collapsible"
+            v-if="uiState.expandAdvancedSettings">
+            <div id="bpm">
+              <h3>BPM: {{ configWrapper.config.bpm }}</h3>
+              <div class="slidecontainer">
+                <input type="range" min="120" max="300" value="180"
+                  class="slider" v-model="configWrapper.config.bpm">
+              </div>
+            </div>
+            <div id="download-midi">
+              <div class="spread-horizontally">
+                <h3 style="display: inline;">Download MIDI?</h3>
+                <img src="@/assets/icons/on.svg"
+                    class="toggle"
+                    @click="configWrapper.config.downloadMidi = false"
+                    v-if="configWrapper.config.downloadMidi" />
+                <img src="@/assets/icons/off.svg"
+                  class="toggle"
+                  @click="configWrapper.config.downloadMidi = true"
+                  v-if="!configWrapper.config.downloadMidi" />
+              </div>
+                <p class="section-hint">
+                  If enabled, all notes played so far will be
+                  exported to MIDI when you pause the track.
+                </p>
+            </div>
+          </div>
+        </div>
+      </span>
       <div id="ready">
         <h2 style="display: inline">Ready?</h2>
         <img @click="validateAndPlay" src="@/assets/icons/play.svg"
