@@ -452,16 +452,11 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
   <div hidden=true>
     TODO:
     <ul>
-      <li>Fix max polyphony limit</li>
       <li>Generating MIDI takes too long</li>
       <li>Background - red and blue przerywane linie</li>
       <li>More factory presets</li>
       <li>Play the second C an octave higher</li>
       <li>Loading and downloading presets</li>
-      <li>For each variable, instead of "play/no play",
-        give a choice from preprogrammed rhythms (only 1s, only 0s,
-        fibonacci word, thue morse word etc.)</li>
-      <li>Split up the code.</li>
     </ul>
   </div>
   <br>
