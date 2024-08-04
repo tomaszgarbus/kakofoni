@@ -458,6 +458,7 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
       <li>Play the second C an octave higher</li>
       <li>Loading and downloading presets</li>
       <li>handle floats in input</li>
+      <li>Add minus and inv</li>
     </ul>
   </div>
   <br>
