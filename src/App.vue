@@ -110,6 +110,9 @@ function play(
   }).toDestination();
   var state = startState;
 
+  // https://github.com/Tonejs/Tone.js/wiki/Performance#contextlatencyhint
+  Tone.setContext(new Tone.Context({ latencyHint : "playback" }))
+
   playState.playing = new Tone.Loop(time => {
     const newActiveNotes: Array<ActiveNote> = [];
     const midiNotes: Array<string> = [];
