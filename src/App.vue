@@ -110,9 +110,6 @@ function play(
   }).toDestination();
   var state = startState;
 
-  // https://github.com/Tonejs/Tone.js/wiki/Performance#contextlatencyhint
-  Tone.setContext(new Tone.Context({ latencyHint : "playback" }))
-
   playState.playing = new Tone.Loop(time => {
     const newActiveNotes: Array<ActiveNote> = [];
     const midiNotes: Array<string> = [];
@@ -120,7 +117,7 @@ function play(
       const value = state[variable];
       var noteToPlay = notes[value] + variableOctaves[variable];
       midiNotes.push(noteToPlay);
-      synth.triggerAttackRelease(noteToPlay, "8n", time);
+      synth.triggerAttackRelease(noteToPlay, "16t", time);
       newActiveNotes.push({
         note: noteToPlay,
         color: configWrapper.config.getColorForVariable(variable)
