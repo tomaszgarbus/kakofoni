@@ -128,9 +128,12 @@ function play(
       duration: '8n'
     });
     playState.midiTrack?.addEvent(midiNoteEvent);
-    pianoRef.value.updatePianoKeys(newActiveNotes);
+
+    Tone.Draw.schedule(function(){
+      pianoRef.value.updatePianoKeys(newActiveNotes);
+		  updateChart();
+    }, time)
     playState.history.states.push(state);
-    updateChart();
 
     state = nextStep(state, stepDefinition);
   }, "8n").start(0);
