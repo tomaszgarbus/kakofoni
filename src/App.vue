@@ -123,15 +123,15 @@ function play(
         color: configWrapper.config.getColorForVariable(variable)
       });
     }
-    const midiNoteEvent = new MidiWriter.NoteEvent({
-      pitch: midiNotes,
-      duration: '8n'
-    });
-    playState.midiTrack?.addEvent(midiNoteEvent);
 
     Tone.Draw.schedule(function(){
       pianoRef.value.updatePianoKeys(newActiveNotes);
 		  updateChart();
+      const midiNoteEvent = new MidiWriter.NoteEvent({
+        pitch: midiNotes,
+        duration: '8n'
+      });
+      playState.midiTrack?.addEvent(midiNoteEvent);
     }, time)
     playState.history.states.push(state);
 

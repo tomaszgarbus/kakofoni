@@ -41,7 +41,7 @@ function isVariableName(str: string): boolean {
 }
 
 function isNumber(str: string): boolean {
-  return !Number.isNaN((+str));
+  return !Number.isNaN(parseInt(str));
 }
 
 function indexOfNotInParentheses(
@@ -75,7 +75,7 @@ function expressionToVarTransform(
     return (state: VariablesState) => state[expr];
   }
   if (isNumber(expr)) {
-    return (_: VariablesState) => +expr;
+    return (_: VariablesState) => parseInt(expr);
   }
   if (expr[0] == '(' && expr[expr.length - 1] == ')') {
     return expressionToVarTransform(
