@@ -117,12 +117,12 @@ function play(
       const value = state[variable];
       var noteToPlay = notes[value] + variableOctaves[variable];
       midiNotes.push(noteToPlay);
-      synth.triggerAttackRelease(noteToPlay, "16t", time);
       newActiveNotes.push({
         note: noteToPlay,
         color: configWrapper.config.getColorForVariable(variable)
       });
     }
+    synth.triggerAttackRelease(midiNotes, "32t", time);
 
     Tone.Draw.schedule(function(){
       pianoRef.value.updatePianoKeys(newActiveNotes);
