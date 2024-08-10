@@ -108,6 +108,14 @@ function play(
   const synth = new Tone.PolySynth({
     maxPolyphony: 80
   }).toDestination();
+  synth.set({
+    	envelope: {
+        attack: '32n',
+        decay: '32n',
+   		  sustain: 0.5,
+        release: '16n'
+      }
+ 	})
   var state = startState;
 
   playState.playing = new Tone.Loop(time => {
@@ -122,7 +130,7 @@ function play(
         color: configWrapper.config.getColorForVariable(variable)
       });
     }
-    synth.triggerAttackRelease(midiNotes, "32t", time);
+    synth.triggerAttackRelease(midiNotes, "8n", time);
 
     Tone.Draw.schedule(function(){
       pianoRef.value.updatePianoKeys(newActiveNotes);
