@@ -62,6 +62,9 @@ function nextStep(
   const newState: VariablesState = {};
   for (let key in state) {
     newState[key] = stepDefinition[key](state) % notes.length;
+    while (newState[key] < 0) {
+      newState[key] += notes.length;
+    }
   }
   return newState;
 }
@@ -469,7 +472,7 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
       <li>Play the second C an octave higher</li>
       <li>Loading and downloading presets</li>
       <li>handle floats in input</li>
-      <li>Add minus and inv</li>
+      <li>Consider making 0 (or 12) a mute note</li>
     </ul>
   </div>
   <br>

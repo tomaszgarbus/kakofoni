@@ -12,7 +12,8 @@ Step definition grammar:
 <number> ::= <digit> | <digit> <number>
 <expression> ::=
   <variable_name> | <number> | "(" <expression> ")" |
-  <expression> "+" <expression> | <expression> "*" <expression>
+  <expression> "+" <expression> | <expression> "*" <expression> |
+  <expression> "-" <expression>
 */
 
 function isLetter(str: string): boolean {
@@ -41,6 +42,9 @@ function isVariableName(str: string): boolean {
 }
 
 function isNumber(str: string): boolean {
+  if (!str.match('^\\d+$')) {
+    return false;
+  }
   return !Number.isNaN(parseInt(str));
 }
 
@@ -94,6 +98,18 @@ function expressionToVarTransform(
       variableNames
     )
     return (state: VariablesState) => leftTransform(state) + rightTransform(state);
+  }
+  const indexOfSub = indexOfNotInParentheses(expr, '-');
+  if (indexOfSub != -1) {
+    const leftTransform = expressionToVarTransform(
+      expr.slice(0, indexOfSub),
+      variableNames
+    )
+    const rightTransform = expressionToVarTransform(
+      expr.slice(indexOfSub + 1),
+      variableNames
+    )
+    return (state: VariablesState) => leftTransform(state) - rightTransform(state);
   }
   const indexOfMult = indexOfNotInParentheses(expr, '*');
   if (indexOfMult != -1) {

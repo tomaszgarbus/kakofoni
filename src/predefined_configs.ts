@@ -55,9 +55,9 @@ const chromaticChaos = new UserConfig(
   },
   /*unparsedVarTransforms=*/{
     'c0': 'c0+1',
-    'c1': 'c1+12',
+    'c1': 'c1-1',
     'c2': 'c2+1',
-    'c3': 'c3+12',
+    'c3': 'c3-1',
     'c4': 'c4+1',
   },
   /*playVariable=*/{
