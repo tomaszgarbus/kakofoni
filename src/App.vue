@@ -81,10 +81,15 @@ function downloadFile(uri: string) {
 }
 
 function stop() {
-  const write = new MidiWriter.Writer(playState.midiTrack);
   if (playState.downloadMidi) {
-    useToast().info('Exporting MIDI download. Check your downloads folder.')
-    downloadFile(write.dataUri());
+    const track = playState.midiTrack;
+    useToast().info('MIDI download will start in a second.')
+    setTimeout(() => {
+      const write = new MidiWriter.Writer(track);
+      
+      useToast().info('Exporting MIDI download. Check your downloads folder.')
+      downloadFile(write.dataUri());
+    }, 1000)
   }
 
   playState.playing?.stop();
@@ -471,7 +476,6 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
       <li>More factory presets</li>
       <li>Play the second C an octave higher</li>
       <li>Loading and downloading presets</li>
-      <li>handle floats in input</li>
       <li>Consider making 0 (or 12) a mute note</li>
     </ul>
   </div>
