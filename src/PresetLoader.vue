@@ -11,21 +11,34 @@ const uiState: UIState = reactive({
   showDropdown: false,
 })
 
-const props = defineProps(['onSelect']);
+const props = defineProps(['onSelect', 'downloadConfig', 'uploadConfig']);
 const onSelect: (preset: UserConfig) => (void) =
   props['onSelect'];
+const downloadConfig: () => (void) = props['downloadConfig'];
+const uploadConfig: () => (void) = props['uploadConfig'];
 
 </script>
 
 <template>
   <div id="dropdown-wrapper">
-    <button
-      @click="uiState.showDropdown = !uiState.showDropdown"
-      id="preset-dropdown-button">
-      Load preset
-      <img v-if="!uiState.showDropdown" src="@/assets/icons/dropdown-open.svg" />
-      <img v-if="uiState.showDropdown" src="@/assets/icons/dropdown-close.svg" />
-    </button>
+    <span id="preset-dropdown-button-wrapper">
+      <button
+        @click="uiState.showDropdown = !uiState.showDropdown"
+        id="preset-dropdown-button">
+        Load preset
+        <img v-if="!uiState.showDropdown" src="@/assets/icons/dropdown-open.svg" />
+        <img v-if="uiState.showDropdown" src="@/assets/icons/dropdown-close.svg" />
+      </button>
+      <img
+        src="@/assets/icons/download.svg"
+        style="cursor: pointer"
+        title="Download current config as file."
+        @click="downloadConfig()" />
+      <img src="@/assets/icons/upload.svg"
+        title="Upload config as file."
+        style="cursor: pointer"
+        @click="uploadConfig()" />
+    </span>
     <div id="preset-dropdown-list" v-if="uiState.showDropdown">
       <span v-for="[name, preset] of Object.entries(predefinedConfigs)">
         <button
@@ -39,6 +52,12 @@ const onSelect: (preset: UserConfig) => (void) =
 </template>
 
 <style scoped>
+#preset-dropdown-button-wrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
 #preset-dropdown-button {
   background-image: var(--primary-gradient);
   border: none;

@@ -12,7 +12,7 @@ import { useToast } from "vue-toastification"
 import Piano from './Piano.vue'
 import { notes, allOctaves, colors } from './constants'
 import { fibonacciUserConfig } from './predefined_configs.js'
-import type UserConfig from './user_config.js'
+import UserConfig from './user_config.js'
 import MidiWriter from 'midi-writer-js'
 import type { Track } from 'midi-writer-js/build/types/chunks/track.js'
 import PresetLoader from './PresetLoader.vue'
@@ -70,10 +70,10 @@ function nextStep(
 }
 
 // https://stackoverflow.com/questions/36903527/how-do-you-automatically-download-a-file-in-javascript
-function downloadFile(uri: string) {
+function downloadFile(uri: string, fname: string) {
   const element = document.createElement('a');
   element.setAttribute('href', uri);
-  element.setAttribute('download', 'export.mid');
+  element.setAttribute('download', fname);
   element.style.display = 'none';
   document.body.appendChild(element);
   element.click();
@@ -88,7 +88,7 @@ function stop() {
       const write = new MidiWriter.Writer(track);
       
       useToast().info('Exporting MIDI download. Check your downloads folder.')
-      downloadFile(write.dataUri());
+      downloadFile(write.dataUri(), 'export.mid');
     }, 1000)
   }
 
@@ -272,6 +272,57 @@ function updateChart() {
     });
 }
 
+function downloadConfig() {
+  // https://stackoverflow.com/questions/19721439/download-json-object-as-a-file-from-browser
+  var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(
+    JSON.stringify(configWrapper.config));
+  downloadFile(dataStr, 'config.json');
+  useToast().info('Triggered download of current config.')
+}
+
+function uploadConfig() {
+  const input: HTMLInputElement = document.createElement('input');
+  input.type = 'file';
+
+  input.onchange = e => { 
+    if (!input.files) {
+      return;
+    }
+
+    const file: File = input.files[0]; 
+
+    const reader = new FileReader();
+    reader.readAsText(file, 'UTF-8');
+
+    reader.onload = readerEvent => {
+      try {
+        const rawContent = readerEvent?.target?.result;
+        if (!rawContent) {
+          return;
+        }
+        const content = JSON.parse(rawContent.toString());
+        if (!content) {
+          return;
+        }
+        configWrapper.config = new UserConfig(
+          content['variables'],
+          content['startState'],
+          content['unparsedVarTransforms'],
+          content['playVariable'],
+          content['variableOctaves'],
+          content['bpm'],
+          content['downloadMidi']
+        )
+        useToast().info("Loaded config from file.");
+      } catch (e) {
+        useToast().error("Failed to parse provided file.");
+      }
+    }
+  }
+
+  input.click();
+}
+
 onMounted(() => {
   updateChart();
 })
@@ -305,7 +356,9 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
           @click="useToast().info('Pause playback before updating the config.')">
         </span>
         <PresetLoader :onSelect=" 
-          (preset: UserConfig) => { configWrapper.config = preset }" />
+          (preset: UserConfig) => { configWrapper.config = preset }"
+          :downloadConfig="downloadConfig"
+          :uploadConfig="uploadConfig" />
         <div id="variables-and-init-values">
           <h2>Variables and initial values</h2>
           <p class="section-hint">
@@ -475,7 +528,6 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
       <li>Background - red and blue przerywane linie</li>
       <li>More factory presets</li>
       <li>Play the second C an octave higher</li>
-      <li>Loading and downloading presets</li>
       <li>Consider making 0 (or 12) a mute note</li>
     </ul>
   </div>
