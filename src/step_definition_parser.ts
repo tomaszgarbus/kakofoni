@@ -123,6 +123,18 @@ function expressionToVarTransform(
     )
     return (state: VariablesState) => leftTransform(state) * rightTransform(state);
   }
+  const indexOfPow = indexOfNotInParentheses(expr, '^');
+  if (indexOfPow != -1) {
+    const leftTransform = expressionToVarTransform(
+      expr.slice(0, indexOfPow),
+      variableNames
+    )
+    const rightTransform = expressionToVarTransform(
+      expr.slice(indexOfPow + 1),
+      variableNames
+    )
+    return (state: VariablesState) => leftTransform(state) ** rightTransform(state);
+  }
   throw Error(`Could not parse expression ${expr}.`)
 }
 
