@@ -401,7 +401,7 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
           <p class="section-hint">
             Now define the step transformation formulas. You can use variable
             names (evaluated at step n-1), numerical constants, parentheses and
-            operations + and *.
+            operations +, *, -, ^ (power).
           </p>
           <p class="section-hint">
             All transforms will be applied in modular arithmetic modulo
