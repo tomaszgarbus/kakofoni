@@ -524,7 +524,8 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
   <div hidden=true>
     TODO:
     <ul>
-      <li>Generating MIDI takes too long</li>
+      <li>Figure out how to encode melodies up to 169 by interpolating bivariate function: sum_{i,j} w_{i,j}*x^i*y^j -- find all w_{i, j}. How about Gaussian elimination?</li>
+      <li>If the above works, prepare an easy workflow, example presets and a PDF paper</li>
       <li>Background - red and blue przerywane linie</li>
       <li>More factory presets</li>
       <li>Play the second C an octave higher</li>
