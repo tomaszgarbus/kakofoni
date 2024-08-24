@@ -74,6 +74,7 @@ const uploadConfig: () => (void) = props['uploadConfig'];
 #dropdown-wrapper {
   position: relative;
   display: inline-block;
+  width: 100%;
 }
 
 #preset-dropdown-list {

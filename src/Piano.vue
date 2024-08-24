@@ -2,7 +2,7 @@
 import { ref, type Ref } from 'vue'
 import OneOctavePiano from './OneOctavePiano.vue'
 import type { ActiveNote } from './types';
-import { allOctaves } from './constants';
+import { extendedOctaves } from './constants';
 import PianoOctaveSeparator from './PianoOctaveSeparator.vue';
 
 /* CONFIG */
@@ -12,7 +12,7 @@ const props = defineProps(['octaves']);
 /* STATE */
 
 const octavePianoRefs: { [octave: number]: Ref } = {};
-for (let octave of allOctaves) {
+for (let octave of extendedOctaves) {
   octavePianoRefs[octave] = ref(null);
 }
 
@@ -20,7 +20,7 @@ for (let octave of allOctaves) {
 
 function updatePianoKeys(activeNotes: Array<ActiveNote>): void {
   const activeNotesPerOctave: { [octave: number]: Array<ActiveNote> } = {};
-  for (let octave of props.octaves) {
+  for (let octave of listPlayedOctaves()) {
     activeNotesPerOctave[octave] = [];
   }
   for (let note of activeNotes) {
@@ -31,7 +31,7 @@ function updatePianoKeys(activeNotes: Array<ActiveNote>): void {
       color: note.color
     });
   }
-  for (let octave of props.octaves) {
+  for (let octave of listPlayedOctaves()) {
     octavePianoRefs[octave].value.updatePianoKeys(
       activeNotesPerOctave[octave]);
   }
@@ -43,20 +43,32 @@ function sortedOctaves(): Array<number> {
   return result;
 }
 
-function sortedOctavesWithGaps(): Array<number | null> {
+function sortedOctavesWithGaps(): Array<[number, boolean] | null> {
   var sorted = sortedOctaves();
-  var withGaps: Array<number | null> = [];
+  var withGaps: Array<[number, boolean] | null> = [];
   for (let idx in sorted) {
     const octave = sorted[idx];
     if (withGaps.length > 0) {
       const last = withGaps[withGaps.length - 1];
-      if (last != null && octave - last > 1) {
+      if (last != null && octave - last[0] > 1) {
+        withGaps.push([last[0] + 1, false]);
         withGaps.push(null);
       }
     }
-    withGaps.push(octave);
+    withGaps.push([octave, true]);
   }
+  withGaps.push([withGaps[withGaps.length - 1]!![0] + 1, false]);
   return withGaps;
+}
+
+function listPlayedOctaves(): Array<number> {
+  const octaves: Array<number> = []
+  for (const desc of sortedOctavesWithGaps()) {
+    if (desc != null) {
+      octaves.push(desc[0])
+    }
+  }
+  return octaves
 }
 
 defineExpose({
@@ -67,17 +79,18 @@ defineExpose({
 
 <template>
   <div id="piano-block">
-    <span v-for="octave in sortedOctavesWithGaps()" style="height: fit-content">
-      <span v-if="octave">
+    <span v-for="desc in sortedOctavesWithGaps()" style="height: fit-content">
+      <span v-if="desc">
         <OneOctavePiano
-          :octave="octave"
+          :octave="desc[0]"
+          :full="desc[1]"
           :ref="(el) => {
             if (el != null) {
-              octavePianoRefs[octave].value = el;
+              octavePianoRefs[desc[0]].value = el;
             }
           }" />  
       </span>
-      <span v-if="!octave">
+      <span v-if="!desc">
         <PianoOctaveSeparator />
       </span>
     </span>

@@ -131,7 +131,9 @@ function play(
     const midiNotes: Array<string> = [];
     for (let variable of variablesToPlay) {
       const value = state[variable];
-      var noteToPlay = notes[value] + variableOctaves[variable];
+      var noteToPlay = notes[value] + (
+        variableOctaves[variable] + (value == 12 ? 1 : 0)
+      );
       midiNotes.push(noteToPlay);
       newActiveNotes.push({
         note: noteToPlay,
@@ -472,7 +474,7 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
             <div id="bpm">
               <h3>BPM: {{ configWrapper.config.bpm }}</h3>
               <div class="slidecontainer">
-                <input type="range" min="120" max="300" value="180"
+                <input type="range" min="105" max="300" value="180"
                   class="slider" v-model="configWrapper.config.bpm">
               </div>
             </div>
@@ -525,12 +527,16 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
   <div hidden=true>
     TODO:
     <ul>
+      <li>Variable names validation, and allow underscore</li>
       <li>Figure out how to encode melodies up to 169 by interpolating bivariate function: sum_{i,j} w_{i,j}*x^i*y^j -- find all w_{i, j}. How about Gaussian elimination?</li>
       <li>If the above works, prepare an easy workflow, example presets and a PDF paper</li>
       <li>Background - red and blue przerywane linie</li>
       <li>More factory presets</li>
       <li>Play the second C an octave higher</li>
-      <li>Consider making 0 (or 12) a mute note</li>
+      <li>"File a bug" button</li>
+      <li>Better formatting for incomplete octaves</li>
+      <li>Allow more variables but only 5 can be played</li>
+      <li>Reverse order on the plot</li>
     </ul>
   </div>
   <br>
