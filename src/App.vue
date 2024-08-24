@@ -167,7 +167,8 @@ function validateAndPlay(): void {
       stepDefinition[variable] =
         expressionToVarTransform(
           configWrapper.config.unparsedVarTransforms[variable],
-          configWrapper.config.variables);
+          configWrapper.config.variables,
+          notes.length);
     } catch (e) {
       useToast().error(`Failed to parse transform for variable ${variable}.
 Error: ${(e as Error).message}.`);

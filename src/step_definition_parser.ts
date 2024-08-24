@@ -70,6 +70,7 @@ function indexOfNotInParentheses(
 function expressionToVarTransform(
   expr: string,
   variableNames: Array<VariableName>,
+  mod: number
 ): VarTransform {
   expr = expr.trim();
   if (isVariableName(expr)) {
@@ -84,56 +85,65 @@ function expressionToVarTransform(
   if (expr[0] == '(' && expr[expr.length - 1] == ')') {
     return expressionToVarTransform(
       expr.slice(1, -1),
-      variableNames
+      variableNames,
+      mod
     );
   }
   const indexOfAdd = indexOfNotInParentheses(expr, '+');
   if (indexOfAdd != -1) {
     const leftTransform = expressionToVarTransform(
       expr.slice(0, indexOfAdd),
-      variableNames
+      variableNames,
+      mod
     )
     const rightTransform = expressionToVarTransform(
       expr.slice(indexOfAdd + 1),
-      variableNames
+      variableNames,
+      mod
     )
-    return (state: VariablesState) => leftTransform(state) + rightTransform(state);
+    return (state: VariablesState) => (leftTransform(state) + rightTransform(state)) % mod;
   }
   const indexOfSub = indexOfNotInParentheses(expr, '-');
   if (indexOfSub != -1) {
     const leftTransform = expressionToVarTransform(
       expr.slice(0, indexOfSub),
-      variableNames
+      variableNames,
+      mod
     )
     const rightTransform = expressionToVarTransform(
       expr.slice(indexOfSub + 1),
-      variableNames
+      variableNames,
+      mod
     )
-    return (state: VariablesState) => leftTransform(state) - rightTransform(state);
+    return (state: VariablesState) => (leftTransform(state) - rightTransform(state)) % mod;
   }
   const indexOfMult = indexOfNotInParentheses(expr, '*');
   if (indexOfMult != -1) {
     const leftTransform = expressionToVarTransform(
       expr.slice(0, indexOfMult),
-      variableNames
+      variableNames,
+      mod
     )
     const rightTransform = expressionToVarTransform(
       expr.slice(indexOfMult + 1),
-      variableNames
+      variableNames,
+      mod
     )
-    return (state: VariablesState) => leftTransform(state) * rightTransform(state);
+    return (state: VariablesState) => (leftTransform(state) * rightTransform(state)) % mod;
   }
   const indexOfPow = indexOfNotInParentheses(expr, '^');
   if (indexOfPow != -1) {
     const leftTransform = expressionToVarTransform(
       expr.slice(0, indexOfPow),
-      variableNames
+      variableNames,
+      mod
     )
     const rightTransform = expressionToVarTransform(
       expr.slice(indexOfPow + 1),
-      variableNames
+      variableNames,
+      mod
     )
-    return (state: VariablesState) => leftTransform(state) ** rightTransform(state);
+    return (state: VariablesState) => (leftTransform(state) ** rightTransform(state)) % mod;
   }
   throw Error(`Could not parse expression ${expr}.`)
 }
