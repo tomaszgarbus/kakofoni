@@ -148,4 +148,4 @@ function expressionToVarTransform(
   throw Error(`Could not parse expression ${expr}.`)
 }
 
-export {expressionToVarTransform};
+export {expressionToVarTransform, isVariableName};

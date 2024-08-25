@@ -17,7 +17,6 @@ function getDisplayedNotes(): Array<string> {
 function updatePianoKeys(activeNotes: Array<ActiveNote>): void {
   for (let note of getDisplayedNotes()) {
     const fill = note.endsWith('#') ? 'black' : 'white';
-    console.log(props.octave, note, svgRef);
     svgRef.value.getElementById(note).setAttribute('fill', fill);
   }
 

@@ -7,7 +7,7 @@ import type {
   VariableOctaves, VariablesToPlay, StepDefinition,
   ActiveNote
 } from './types.js'
-import { expressionToVarTransform  } from './step_definition_parser'
+import { expressionToVarTransform, isVariableName  } from './step_definition_parser'
 import { useToast } from "vue-toastification"
 import Piano from './Piano.vue'
 import { notes, allOctaves, colors } from './constants'
@@ -275,6 +275,15 @@ function updateChart() {
     });
 }
 
+function validateAndAddVariable(newVar: string) {
+  if (!isVariableName(newVar)) {
+    useToast().error(`Invalid variable name ${newVar}. Must start with a
+letter and contain only letters and digits.`)
+    return
+  }
+  configWrapper.config.addVariable(newVar)
+}
+
 function downloadConfig() {
   // https://stackoverflow.com/questions/19721439/download-json-object-as-a-file-from-browser
   var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(
@@ -395,7 +404,7 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
               </span>
               <input type="text" class="input wide" v-model="newVar" />
               <img src="@/assets/icons/add.svg" class="variable-add-or-del-img"
-                @click="configWrapper.config.addVariable(newVar)"/>
+                @click="validateAndAddVariable(newVar)"/>
             </div>
           </div>
         </div>
@@ -515,7 +524,7 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
           configWrapper.config.activeOctaves,
           playState.config?.activeOctaves)" />
       
-      <!--Visualizer-->
+      <!-- Visualizer -->
       <div id="plot-wrapper">
         <svg id="visualiser"></svg>
       </div>
@@ -523,18 +532,13 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
   </div>
 
 
-  <!--TODO-->
+  <!-- TODO -->
   <div hidden=true>
     TODO:
     <ul>
-      <li>Variable names validation, and allow underscore</li>
-      <li>Figure out how to encode melodies up to 169 by interpolating bivariate function: sum_{i,j} w_{i,j}*x^i*y^j -- find all w_{i, j}. How about Gaussian elimination?</li>
       <li>If the above works, prepare an easy workflow, example presets and a PDF paper</li>
       <li>Background - red and blue przerywane linie</li>
-      <li>More factory presets</li>
-      <li>Play the second C an octave higher</li>
       <li>"File a bug" button</li>
-      <li>Better formatting for incomplete octaves</li>
       <li>Allow more variables but only 5 can be played</li>
       <li>Reverse order on the plot</li>
     </ul>
