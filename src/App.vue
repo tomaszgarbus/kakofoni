@@ -240,7 +240,7 @@ function updateChart() {
       .range([0, height]);
   svg.append("g").call(
     d3.axisLeft(y).tickFormat(
-      (_, index) => `${index} (${notes[index]})`
+      (_, index) => `${notes.length - index - 1} (${notes[notes.length - index - 1]})`
     )
   ).style("font", "14px times")
   
@@ -252,7 +252,7 @@ function updateChart() {
         return x(index);
       })
       .y(function (d: VariablesState) {
-      return y(d[variable]);
+      return y(notes.length - d[variable] - 1);
     });
     lines[variable] = line;
   }
