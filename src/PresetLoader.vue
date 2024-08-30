@@ -38,6 +38,12 @@ const uploadConfig: () => (void) = props['uploadConfig'];
         title="Upload config as file."
         style="cursor: pointer"
         @click="uploadConfig()" />
+      <a href="/kakofoni/Hacking_Kakofonix.pdf"
+        style="display: flex; flex-direction: row; align-items: center;">
+        <img src="@/assets/icons/hacker_doc.svg"
+          title="Hacker mode!"
+          style="cursor: pointer" />
+      </a>
     </span>
     <div id="preset-dropdown-list" v-if="uiState.showDropdown">
       <span v-for="[name, preset] of Object.entries(predefinedConfigs)">
