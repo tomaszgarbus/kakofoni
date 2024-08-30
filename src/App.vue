@@ -544,4 +544,15 @@ function setUnion<T>(set1: Set<T>, set2: Set<T> | undefined): Set<T> {
     </ul>
   </div>
   <br>
+
+  <div style="position: relative">
+    <a href="/kakofoni/Hacking_Kakofonix.pdf"
+      style="display: flex; flex-direction: row; align-items: center; position: absolute; bottom: 0; right: 0;">
+      <img src="@/assets/icons/hacker_doc.svg"
+        title="Hacker mode!"
+        width="48em"
+        height="48em"
+        style="cursor: pointer" />
+    </a>
+  </div>
 </template>
